@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SASS – Permission Request</title>
+
+  <!-- Read saved theme immediately (no flash) -->
+  <script>
+    (function(){
+      var theme = localStorage.getItem('sass_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Central theme (must be first) -->
+  <link rel="stylesheet" href="theme.css">
+
+  <style>
+    /* very local overrides */
+    :root {
+      --red: #ef4444;
+      --radius: 12px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .permission-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text2);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .message { margin-top: 12px; font-size: 0.85rem; text-align: center; }
+    .success { color: var(--green); }
+    .error   { color: var(--red); }
+
+    .remaining {
+      font-size: 0.8rem;
+      color: var(--text2);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="permission-card">
+    <div class="logo"><i class="fa-solid fa-file-signature"></i> SASS</div>
+
+    <div id="loading-screen" class="loading">
+      <div class="spinner"></div>
+      <p>Checking eligibility…</p>
+    </div>
+
+    <form id="permission-form" style="display: none;">
+      <h2 style="text-align:center; margin-bottom: 20px; color: var(--blue);">Request Permission</h2>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="student-name" placeholder="Your full name" required>
+      </div>
+
+      <div class="form-group">
+        <label>Grade</label>
+        <select id="grade-select" required>
+          <option value="">Select Grade</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Section</label>
+        <select id="section-select" required></select>
+      </div>
+
+      <div class="form-group">
+        <label>Reason (optional)</label>
+        <textarea id="reason" rows="2" placeholder="Short reason for permission…"></textarea>
+      </div>
+
+      <div class="remaining" id="remaining-display"></div>
+
+      <button type="submit" class="btn-primary" id="submit-btn">
+        <i class="fa-solid fa-paper-plane"></i> Submit Request
+      </button>
+
+      <p class="message" id="form-message"></p>
+    </form>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import {
+      collection,
+      addDoc,
+      query,
+      where,
+      getDocs,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const $ = s => document.querySelector(s);
+
+    // Section A-Z
+    let sectionOptions = '';
+    for (let i = 65; i <= 90; i++) {
+      const letter = String.fromCharCode(i);
+      sectionOptions += `<option value="${letter}">${letter}</option>`;
+    }
+    $('#section-select').innerHTML = sectionOptions;
+
+    let currentUser = null;
+    const MAX_REQUESTS_PER_MONTH = 3;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        $('#loading-screen').innerHTML = '<p>Please log in to submit a permission request.</p>';
+        return;
+      }
+
+      currentUser = user;
+      $('#loading-screen').style.display = 'none';
+      $('#permission-form').style.display = 'block';
+
+      try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const requestsQ = query(
+          collection(db, "permissions"),
+          where("uid", "==", user.uid),
+          where("timestamp", ">=", startOfMonth)
+        );
+        const requestsSnap = await getDocs(requestsQ);
+        const requestCount = requestsSnap.size;
+        const remaining = MAX_REQUESTS_PER_MONTH - requestCount;
+        $('#remaining-display').textContent = `You have ${Math.max(remaining, 0)} request(s) remaining this month.`;
+
+        if (remaining <= 0) {
+          $('#submit-btn').disabled = true;
+          $('#form-message').textContent = 'You have reached the maximum number of requests for this month.';
+          $('#form-message').className = 'message error';
+        }
+      } catch (err) {
+        console.warn('Could not fetch remaining requests. Assuming 0 used.');
+        $('#remaining-display').textContent = '';
+      }
+    });
+
+    $('#permission-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!currentUser) {
+        $('#form-message').textContent = 'You must be logged in.';
+        $('#form-message').className = 'message error';
+        return;
+      }
+
+      const name = $('#student-name').value.trim();
+      const grade = $('#grade-select').value;
+      const section = $('#section-select').value;
+      const reason = $('#reason').value.trim();
+
+      if (!name || !grade || !section) {
+        $('#form-message').textContent = 'Please fill in all required fields.';
+        $('#form-message').className = 'message error';
+        return;
+      }
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const requestsQ = query(
+        collection(db, "permissions"),
+        where("uid", "==", currentUser.uid),
+        where("timestamp", ">=", startOfMonth)
+      );
+      const requestsSnap = await getDocs(requestsQ);
+
+      if (requestsSnap.size >= MAX_REQUESTS_PER_MONTH) {
+        $('#form-message').textContent = 'You have already used all your requests for this month.';
+        $('#form-message').className = 'message error';
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "permissions"), {
+          uid: currentUser.uid,
+          studentName: name,
+          grade,
+          section,
+          reason,
+          status: 'pending',
+          timestamp: serverTimestamp()
+        });
+
+        $('#form-message').textContent = 'Request submitted successfully!';
+        $('#form-message').className = 'message success';
+        $('#permission-form').reset();
+
+        const newCount = requestsSnap.size + 1;
+        const remaining = MAX_REQUESTS_PER_MONTH - newCount;
+        $('#remaining-display').textContent = `You have ${Math.max(remaining, 0)} request(s) remaining this month.`;
+        if (remaining <= 0) {
+          $('#submit-btn').disabled = true;
+        }
+      } catch (err) {
+        console.error(err);
+        $('#form-message').textContent = 'Failed to submit request. Please try again.';
+        $('#form-message').className = 'message error';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SASS – Student Results</title>
+
+  <!-- Read saved theme immediately -->
+  <script>
+    (function(){
+      var theme = localStorage.getItem('sass_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="theme.css">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.4s, color 0.4s;
+    }
+    .container { width: 100%; max-width: 520px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .logo {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text2);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.3s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .result-card {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .result-card h3 {
+      color: var(--blue);
+      margin-bottom: 12px;
+      font-size: 1.3rem;
+    }
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    .result-table th, .result-table td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .result-table th {
+      color: var(--text2);
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 2px solid var(--border);
+      margin-top: 12px;
+      font-weight: 600;
+    }
+    .rank-badge {
+      background: var(--blue);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .msg {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .msg.error { color: var(--red); }
+    .msg.success { color: var(--green); }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .back-link a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .back-link a:hover { color: var(--blue); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo"><i class="fa-solid fa-chart-line"></i> SASS Results</div>
+
+      <form id="result-form">
+        <div class="form-group">
+          <label>Student ID</label>
+          <input type="text" id="student-id" placeholder="e.g. SASS-2026-0004" required>
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="student-name" placeholder="Your full name" required>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">
+          <i class="fa-solid fa-magnifying-glass"></i> Check Results
+        </button>
+      </form>
+
+      <div id="result-container"></div>
+      <p class="msg" id="error-msg"></p>
+
+      <div class="back-link">
+        <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const $ = s => document.querySelector(s);
+
+    const form = $('#result-form');
+    const studentIdInput = $('#student-id');
+    const studentNameInput = $('#student-name');
+    const submitBtn = $('#submit-btn');
+    const resultContainer = $('#result-container');
+    const errorMsg = $('#error-msg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const studentId = studentIdInput.value.trim();
+      const studentName = studentNameInput.value.trim().toLowerCase();
+
+      if (!studentId || !studentName) {
+        errorMsg.textContent = 'Please fill in both fields.';
+        errorMsg.className = 'msg error';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0;"></div> Searching…';
+      errorMsg.textContent = '';
+      resultContainer.innerHTML = '';
+
+      try {
+        // 1️⃣ Find the student document by studentId
+        const studentQuery = query(collection(db, "students"), where("studentId", "==", studentId));
+        const studentSnap = await getDocs(studentQuery);
+
+        if (studentSnap.empty) {
+          errorMsg.textContent = 'Student ID not found. Please check and try again.';
+          errorMsg.className = 'msg error';
+          resetButton();
+          return;
+        }
+
+        const studentDoc = studentSnap.docs[0];
+        const studentData = studentDoc.data();
+
+        // 2️⃣ Verify name (case‑insensitive)
+        if (studentData.name.toLowerCase() !== studentName) {
+          errorMsg.textContent = 'Name does not match the provided ID. Please try again.';
+          errorMsg.className = 'msg error';
+          resetButton();
+          return;
+        }
+
+        const grade = studentData.grade;
+        const section = studentData.section;
+        if (!grade || !section) {
+          errorMsg.textContent = 'Student grade/section missing. Cannot calculate rank.';
+          errorMsg.className = 'msg error';
+          resetButton();
+          return;
+        }
+
+        // 3️⃣ Fetch this student's marks
+        const myMarksQuery = query(collection(db, "marks"), where("studentId", "==", studentId));
+        const myMarksSnap = await getDocs(myMarksQuery);
+
+        if (myMarksSnap.empty) {
+          resultContainer.innerHTML = `
+            <div class="result-card">
+              <h3>${studentData.name}</h3>
+              <p style="color:var(--text2);">No marks available yet.</p>
+              <p style="color:var(--text2); font-size:0.85rem;">Grade: ${grade}${section}</p>
+            </div>
+          `;
+          resetButton();
+          return;
+        }
+
+        // Build my marks table & compute my average
+        let myTotal = 0, myCount = 0;
+        let myTableRows = '';
+        myMarksSnap.forEach(doc => {
+          const mark = doc.data();
+          myTableRows += `<tr><td>${mark.subject}</td><td>${mark.score}</td></tr>`;
+          myTotal += mark.score;
+          myCount++;
+        });
+        const myAvg = myTotal / myCount;
+
+        // 4️⃣ Fetch all students in the same grade & section
+        const classStudentsQuery = query(collection(db, "students"),
+          where("grade", "==", grade),
+          where("section", "==", section)
+        );
+        const classStudentsSnap = await getDocs(classStudentsQuery);
+        const studentIds = [];
+        const studentNames = {};
+        classStudentsSnap.forEach(doc => {
+          const s = doc.data();
+          const sid = s.studentId || doc.id;
+          studentIds.push(sid);
+          studentNames[sid] = s.name;
+        });
+
+        // 5️⃣ Fetch all marks for these students in one go (Firestore `in` query max 10 per query, so batch)
+        const allMarks = [];
+        // Firestore supports `in` queries up to 10 values; batch if necessary
+        async function fetchMarksForStudents(ids) {
+          const marksList = [];
+          for (let i = 0; i < ids.length; i += 10) {
+            const chunk = ids.slice(i, i + 10);
+            const q = query(collection(db, "marks"), where("studentId", "in", chunk));
+            const snap = await getDocs(q);
+            snap.forEach(doc => marksList.push(doc.data()));
+          }
+          return marksList;
+        }
+
+        const allMarksData = await fetchMarksForStudents(studentIds);
+
+        // Calculate average for each class student
+        const averages = {}; // studentId -> { total, count }
+        allMarksData.forEach(m => {
+          if (!averages[m.studentId]) averages[m.studentId] = { total: 0, count: 0 };
+          averages[m.studentId].total += m.score;
+          averages[m.studentId].count++;
+        });
+
+        const studentAvgs = [];
+        for (const sid of studentIds) {
+          if (averages[sid] && averages[sid].count > 0) {
+            studentAvgs.push({
+              studentId: sid,
+              name: studentNames[sid] || sid,
+              avg: averages[sid].total / averages[sid].count
+            });
+          } else {
+            // student with no marks – treat as 0 avg? We'll exclude from ranking.
+          }
+        }
+
+        // Sort descending by average
+        studentAvgs.sort((a, b) => b.avg - a.avg);
+
+        // Assign ranks (handling ties)
+        let rank = 1;
+        let prevAvg = null;
+        let rankDisplay = null;
+        for (let i = 0; i < studentAvgs.length; i++) {
+          const entry = studentAvgs[i];
+          if (prevAvg !== null && entry.avg < prevAvg) {
+            rank = i + 1; // next rank after ties
+          }
+          if (entry.studentId === studentId) {
+            rankDisplay = rank;
+            break;
+          }
+          prevAvg = entry.avg;
+        }
+
+        const totalStudents = studentAvgs.length;
+        const rankText = rankDisplay ? `${rankDisplay} / ${totalStudents}` : 'N/A';
+
+        resultContainer.innerHTML = `
+          <div class="result-card">
+            <h3>${studentData.name}</h3>
+            <p style="color:var(--text2); margin-bottom:8px;">
+              <strong>ID:</strong> ${studentId}   |   
+              <strong>Grade:</strong> ${grade}${section}
+            </p>
+            <table class="result-table">
+              <thead><tr><th>Subject</th><th>Score</th></tr></thead>
+              <tbody>${myTableRows}</tbody>
+            </table>
+            <div class="summary">
+              <span>Total: <strong>${myTotal}</strong></span>
+              <span>Average: <strong>${myAvg.toFixed(1)}</strong></span>
+              <span class="rank-badge"><i class="fa-solid fa-trophy"></i> Rank: ${rankText}</span>
+            </div>
+          </div>
+        `;
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = 'Failed to fetch results. Please try again.';
+        errorMsg.className = 'msg error';
+      } finally {
+        resetButton();
+      }
+    });
+
+    function resetButton() {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Check Results';
+    }
+  </script>
+</body>
+</html>

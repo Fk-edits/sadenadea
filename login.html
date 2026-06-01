@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SASS – Login</title>
+
+  <!-- Read saved theme immediately -->
+  <script>
+    (function(){
+      var theme = localStorage.getItem('sass_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Central theme (must be first) -->
+  <link rel="stylesheet" href="theme.css">
+
+  <style>
+    /* very local additions */
+    :root {
+      --red: #ef4444;
+      --radius: 12px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--border);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.3s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .btn-google {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-google:hover {
+      background: var(--border);
+      border-color: var(--blue);
+    }
+
+    .error {
+      color: var(--red);
+      font-size: 0.85rem;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .footer-link { text-align: center; margin-top: 20px; }
+    .footer-link a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .footer-link a:hover { color: var(--blue); }
+
+    .toggle-mode {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: var(--text2);
+    }
+    .toggle-mode a {
+      color: var(--blue);
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .toggle-mode a:hover { text-decoration: underline; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo"><i class="fa-solid fa-graduation-cap"></i> SASS</div>
+
+      <div class="tabs">
+        <button class="tab active" data-role="admin">Admin</button>
+        <button class="tab" data-role="teacher">Teacher</button>
+        <button class="tab" data-role="student">Student</button>
+      </div>
+
+      <!-- Login / Sign-Up Form -->
+      <form id="auth-form">
+        <div class="form-group">
+          <input type="email" id="email" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <!-- Student extra fields (only for sign-up) -->
+        <div class="form-group" id="student-name-group" style="display: none;">
+          <input type="text" id="student-name" placeholder="Full Name">
+        </div>
+        <div class="form-group" id="student-subject-group" style="display: none;">
+          <input type="text" id="student-subject" placeholder="Favorite Subject">
+        </div>
+        <div class="form-group" id="student-class-group" style="display: none;">
+          <input type="text" id="student-class" placeholder="Class (e.g. Grade 10)">
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">
+          <i class="fa-solid fa-right-to-bracket"></i> <span id="submit-text">Sign In</span>
+        </button>
+      </form>
+
+      <p class="toggle-mode" id="student-toggle-mode" style="display: none;">
+        <span id="toggle-prompt">Don't have an account?</span>
+        <a id="toggle-link">Create Account</a>
+      </p>
+
+      <div class="divider">or</div>
+
+      <!-- Google Sign-In Button -->
+      <button id="google-signin-btn" class="btn-google">
+        <i class="fa-brands fa-google"></i> Sign in with Google
+      </button>
+
+      <p class="error" id="error-message"></p>
+
+      <div class="footer-link">
+        <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signInWithPopup,
+      GoogleAuthProvider
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDceDGKyu8tyZ_ZLPefkL3ElzVNHfQmN4",
+      authDomain: "sass-school-ea659.firebaseapp.com",
+      projectId: "sass-school-ea659",
+      storageBucket: "sass-school-ea659.firebasestorage.app",
+      messagingSenderId: "941464239698",
+      appId: "1:941464239698:web:ea1fb74408bca4fc95698b",
+      measurementId: "G-VPKNRKCHTR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // ==================== LANGUAGE ====================
+    const translations = {
+      en: {
+        sign_in: "Sign In",
+        back_home: "Back to Home",
+        admin_tab: "Admin",
+        teacher_tab: "Teacher",
+        student_tab: "Student",
+        create_account: "Create Account",
+        toggle_prompt_signin: "Already have an account?",
+        toggle_prompt_signup: "Don't have an account?"
+      },
+      am: {
+        sign_in: "ግባ",
+        back_home: "ወደ መነሻ ተመለስ",
+        admin_tab: "አስተዳዳሪ",
+        teacher_tab: "አስተማሪ",
+        student_tab: "ተማሪ",
+        create_account: "አካውንት ይፍጠሩ",
+        toggle_prompt_signin: "አካውንት አለዎት?",
+        toggle_prompt_signup: "ሂሳብ የለዎትም?"
+      },
+      om: {
+        sign_in: "Galmaa'i",
+        back_home: "Gara Seensaa deebi'i",
+        admin_tab: "Admin",
+        teacher_tab: "Barsiisaa",
+        student_tab: "Barataa",
+        create_account: "Account Uumuu",
+        toggle_prompt_signin: "Account duraan qabduu?",
+        toggle_prompt_signup: "Account hin qabduu?"
+      }
+    };
+
+    let currentLang = localStorage.getItem('sass_lang') || 'en';
+    function applyLanguage(lang) {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+      });
+    }
+    applyLanguage(currentLang);
+
+    // ==================== THEME (already set by inline script) ====================
+    const theme = localStorage.getItem('sass_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // ==================== TAB SWITCHING ====================
+    let currentRole = 'admin';
+    const tabs = document.querySelectorAll('.tab');
+    const studentNameGroup = document.getElementById('student-name-group');
+    const studentSubjectGroup = document.getElementById('student-subject-group');
+    const studentClassGroup = document.getElementById('student-class-group');
+    const studentToggleMode = document.getElementById('student-toggle-mode');
+    const submitText = document.getElementById('submit-text');
+    const toggleLink = document.getElementById('toggle-link');
+    const togglePrompt = document.getElementById('toggle-prompt');
+    let isCreating = false;
+
+    function setMode(creating) {
+      isCreating = creating;
+      if (creating) {
+        submitText.textContent = translations[currentLang]?.create_account || 'Create Account';
+        togglePrompt.textContent = translations[currentLang]?.toggle_prompt_signin || 'Already have an account?';
+        toggleLink.textContent = translations[currentLang]?.sign_in || 'Sign In';
+        studentNameGroup.style.display = 'block';
+        studentSubjectGroup.style.display = 'block';
+        studentClassGroup.style.display = 'block';
+      } else {
+        submitText.textContent = translations[currentLang]?.sign_in || 'Sign In';
+        togglePrompt.textContent = translations[currentLang]?.toggle_prompt_signup || "Don't have an account?";
+        toggleLink.textContent = translations[currentLang]?.create_account || 'Create Account';
+        studentNameGroup.style.display = 'none';
+        studentSubjectGroup.style.display = 'none';
+        studentClassGroup.style.display = 'none';
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentRole = tab.dataset.role;
+        document.getElementById('error-message').textContent = '';
+        if (currentRole === 'student') {
+          studentToggleMode.style.display = 'block';
+          setMode(isCreating);
+        } else {
+          studentToggleMode.style.display = 'none';
+          isCreating = false;
+          setMode(false);
+        }
+      });
+    });
+
+    toggleLink.addEventListener('click', () => {
+      isCreating = !isCreating;
+      setMode(isCreating);
+    });
+
+    // ==================== FORM SUBMISSION ====================
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorEl = document.getElementById('error-message');
+      errorEl.textContent = '';
+
+      if (!email || !password) {
+        errorEl.textContent = 'Please fill all fields.';
+        return;
+      }
+
+      try {
+        if (currentRole === 'student' && isCreating) {
+          const studentName = document.getElementById('student-name').value.trim();
+          const studentSubject = document.getElementById('student-subject').value.trim();
+          const studentClass = document.getElementById('student-class').value.trim();
+          if (!studentName) {
+            errorEl.textContent = 'Please enter your full name.';
+            return;
+          }
+          const userCred = await createUserWithEmailAndPassword(auth, email, password);
+          await addDoc(collection(db, "students"), {
+            uid: userCred.user.uid,
+            email: email,
+            name: studentName,
+            subject: studentSubject,
+            class: studentClass
+          });
+          window.location.href = 'index.html';
+        } else {
+          const userCred = await signInWithEmailAndPassword(auth, email, password);
+          await handleRoleRedirect(userCred.user.uid);
+        }
+      } catch (err) {
+        if (err.code === 'auth/email-already-in-use') {
+          errorEl.textContent = 'An account with this email already exists. Please sign in instead.';
+        } else {
+          errorEl.textContent = err.message;
+        }
+      }
+    });
+
+    // ==================== GOOGLE LOGIN ====================
+    document.getElementById('google-signin-btn').addEventListener('click', async () => {
+      const errorEl = document.getElementById('error-message');
+      errorEl.textContent = '';
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        await handleRoleRedirect(result.user.uid);
+      } catch (err) {
+        if (err.code !== 'auth/popup-closed-by-user') {
+          errorEl.textContent = err.message;
+        }
+      }
+    });
+
+    // ==================== REDIRECT ====================
+    async function handleRoleRedirect(uid) {
+      const errorEl = document.getElementById('error-message');
+
+      if (currentRole === 'admin') {
+        const q = query(collection(db, "admins"), where("uid", "==", uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          window.location.href = 'admin.html';
+          return;
+        }
+        await auth.signOut();
+        errorEl.textContent = 'No admin account found.';
+        return;
+      }
+
+      if (currentRole === 'teacher') {
+        const q = query(collection(db, "teachers"), where("uid", "==", uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          window.location.href = 'teacher.html';
+          return;
+        }
+        await auth.signOut();
+        errorEl.textContent = 'No teacher account found.';
+        return;
+      }
+
+      if (currentRole === 'student') {
+        const q = query(collection(db, "students"), where("uid", "==", uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          window.location.href = 'index.html';
+          return;
+        }
+        await auth.signOut();
+        errorEl.textContent = 'No student account found.';
+        return;
+      }
+    }
+  </script>
+</body>
+</html>

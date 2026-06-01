@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABM-10 TOPUP — Premium Digital Services</title>
+    <!-- Firebase SDKs (Auth + Firestore only) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #040b18;
+            --bg-secondary: #0a1226;
+            --bg-card: #0f1a2e;
+            --border: #1e2a42;
+            --text: #eef2ff;
+            --text-secondary: #9ca8c4;
+            --blue: #2563eb;
+            --blue-light: #60a5fa;
+            --blue-dark: #1d4ed8;
+            --blue-gradient: linear-gradient(135deg, #2563eb, #1d4ed8);
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f59e0b;
+            --glass-bg: rgba(15, 26, 46, 0.7);
+            --glass-border: rgba(255,255,255,0.07);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* Glass card */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 8px 30px rgba(37, 99, 235, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-family: var(--font);
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+        .btn-primary { background: var(--blue-gradient); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45); }
+        .btn-outline { background: transparent; border: 1px solid var(--blue); color: var(--blue-light); }
+        .btn-outline:hover { background: rgba(37, 99, 235, 0.1); }
+        .btn-danger { background: var(--red); color: #fff; }
+        .btn-danger:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-success:hover { background: #059669; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-sm { padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; }
+        .btn-lg { padding: 14px 32px; font-size: 1rem; }
+
+        /* Badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            display: inline-block;
+        }
+        .badge-pending { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .badge-active { background: rgba(37,99,235,0.2); color: #60a5fa; }
+        .badge-completed { background: rgba(16,185,129,0.2); color: #34d399; }
+        .badge-rejected { background: rgba(239,68,68,0.2); color: #f87171; }
+
+        /* Navbar */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(4, 11, 24, 0.85); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); height: 70px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 2rem;
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; background: var(--blue-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: flex; align-items: center; gap: 8px; }
+        .nav-links { display: flex; gap: 2rem; align-items: center; list-style: none; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .nav-links a:hover { color: var(--blue-light); }
+        .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; }
+        .hamburger span { width: 26px; height: 3px; background: var(--text); border-radius: 3px; }
+
+        /* Dashboard Layout */
+        .dashboard-layout { display: flex; min-height: 100vh; padding-top: 70px; }
+        .sidebar { width: 270px; background: var(--bg-card); border-right: 1px solid var(--border); position: fixed; top: 70px; bottom: 0; overflow-y: auto; padding: 1.5rem 1rem; transition: transform 0.3s ease; z-index: 99; }
+        .sidebar-nav { list-style: none; }
+        .sidebar-nav li a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 10px; color: var(--text-secondary); cursor: pointer; margin-bottom: 4px; font-size: 0.95rem; transition: 0.2s; }
+        .sidebar-nav li a.active, .sidebar-nav li a:hover { background: rgba(37, 99, 235, 0.15); color: var(--blue-light); }
+        .main-content { flex: 1; margin-left: 270px; padding: 2rem; }
+
+        /* Hero */
+        .hero { padding: 130px 2rem 80px; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 800px; background: radial-gradient(circle, rgba(37, 99, 235, 0.1), transparent 60%); pointer-events: none; }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; line-height: 1.2; }
+
+        /* Product cards */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+        .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: var(--transition); }
+        .product-card:hover { border-color: var(--blue); transform: translateY(-5px); box-shadow: 0 12px 30px rgba(37, 99, 235, 0.15); }
+        .product-img-wrapper { width: 100%; height: 180px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; }
+        .product-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { padding: 1.2rem; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; max-width: 550px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.6); animation: slideUp 0.3s; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 14px 20px; border-radius: 10px; color: #fff; font-weight: 600; animation: slideInRight 0.35s ease; }
+        .toast-success { background: var(--green); } .toast-error { background: var(--red); } .toast-info { background: var(--blue); }
+        @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Notification badge */
+        .notif-badge { position: relative; }
+        .notif-badge .count { position: absolute; top: -10px; right: -12px; background: var(--red); color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+        /* Mobile */
+        @media (max-width: 900px) {
+            .hamburger { display: flex; } .nav-links { display: none; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-bottom-nav { display: flex; }
+            .main-content { padding-bottom: 80px; }
+            .hero h1 { font-size: 2.2rem; }
+        }
+        .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(4, 11, 24, 0.95); border-top: 1px solid var(--border); padding: 8px 0; z-index: 1000; justify-content: space-around; }
+        .mobile-bottom-nav a { color: var(--text-secondary); font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+
+        .hidden { display: none !important; }
+        .skeleton { background: linear-gradient(90deg, #0f1a2e, #1a2a44, #0f1a2e); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-wallet"></i> ABM-10 TOPUP</div>
+        <ul class="nav-links" id="navLinks"></ul>
+        <button class="hamburger" onclick="document.querySelector('.sidebar')?.classList.toggle('open')"><span></span><span></span><span></span></button>
+    </nav>
+    <div class="mobile-bottom-nav" id="mobileNav"></div>
+    <div id="app"></div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal()"><div class="modal" id="modalContent" onclick="event.stopPropagation()"></div></div>
+    <div class="img-zoom-overlay hidden" id="imgZoomOverlay" onclick="closeZoom()"><img id="imgZoomSrc" style="max-width:95%; max-height:90vh; border-radius:12px;"></div>
+
+    <script>
+        // ==================== FIREBASE CONFIG ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAcHjmqm1xLGdMGr85LJOuN-ar_FEf3OxA",
+            authDomain: "smmapp-5ca85.firebaseapp.com",
+            projectId: "smmapp-5ca85",
+            storageBucket: "smmapp-5ca85.firebasestorage.app",
+            messagingSenderId: "926421685215",
+            appId: "1:926421685215:web:df59434467b89798b2ea6a",
+            measurementId: "G-6N4QEE6GSE"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // ==================== GLOBAL STATE ====================
+        let currentUser = null;
+        let isAdmin = false;
+        let currentView = 'home';
+        let adminSubView = 'overview';
+        let selectedProduct = null;
+        let allProducts = [];
+        let allPaymentMethods = [];
+        let notificationCount = 0;
+        let unsubscribeAdminNotifs = null;
+        let appliedCoupon = null;
+        let orderTotalBeforeCoupon = 0;
+
+        // ==================== CATEGORY ICONS ====================
+        function getCategoryIcon(category) {
+            const map = {
+                'Telegram Services': 'fa-paper-plane',
+                'TikTok Services': 'fa-music',
+                'Instagram Services': 'fa-instagram',
+                'YouTube Services': 'fa-youtube',
+                'PUBG UC': 'fa-gamepad',
+                'Free Fire Diamonds': 'fa-gem',
+                'Other Digital Services': 'fa-globe'
+            };
+            return map[category] || 'fa-star';
+        }
+
+        // ==================== AUTH LISTENER ====================
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    isAdmin = data.role === 'admin';
+                    if (data.status === 'banned') {
+                        isAdmin = false;
+                        await auth.signOut();
+                        toast('Your account has been banned.', 'error');
+                        return;
+                    }
+                } else {
+                    await db.collection('users').doc(user.uid).set({
+                        email: user.email,
+                        role: 'user',
+                        status: 'active',
+                        createdAt: Date.now()
+                    });
+                    isAdmin = false;
+                }
+                if (isAdmin) {
+                    if (unsubscribeAdminNotifs) unsubscribeAdminNotifs();
+                    unsubscribeAdminNotifs = db.collection('notifications')
+                        .where('targetId', '==', 'admin')
+                        .where('read', '==', false)
+                        .onSnapshot(snap => {
+                            notificationCount = snap.size;
+                            updateNav();
+                            if (currentView === 'admin' && adminSubView === 'overview') loadAdminOverview();
+                        });
+                }
+            } else {
+                isAdmin = false;
+                notificationCount = 0;
+                if (unsubscribeAdminNotifs) { unsubscribeAdminNotifs(); unsubscribeAdminNotifs = null; }
+            }
+            updateNav();
+            render();
+        });
+
+        // ==================== NAVIGATION ====================
+        function nav(view, data = null) {
+            if (view === 'admin' && !isAdmin) return toast('Access denied', 'error');
+            if (view === 'dashboard' && !currentUser) return nav('login');
+            currentView = view;
+            if (data) selectedProduct = data;
+            document.querySelector('.sidebar')?.classList.remove('open');
+            render();
+            window.scrollTo(0, 0);
+        }
+        function setAdminView(view) { adminSubView = view; render(); }
+
+        function updateNav() {
+            const n = document.getElementById('navLinks'), m = document.getElementById('mobileNav');
+            if (currentUser) {
+                n.innerHTML = `
+                    <li><a onclick="nav('home')">Home</a></li>
+                    <li><a onclick="nav('products')">Services</a></li>
+                    <li><a onclick="nav('dashboard')">Dashboard <span class="notif-badge"><span class="count">${notificationCount||0}</span></span></a></li>
+                    ${isAdmin ? '<li><a onclick="nav(\'admin\')">Admin</a></li>' : ''}
+                    <li><a onclick="logout()">Logout</a></li>`;
+                m.innerHTML = `
+                    <a onclick="nav('home')"><i class="fas fa-home"></i>Home</a>
+                    <a onclick="nav('products')"><i class="fas fa-th"></i>Services</a>
+                    <a onclick="nav('dashboard')"><i class="fas fa-user"></i>Dash</a>
+                    ${isAdmin ? '<a onclick="nav(\'admin\')"><i class="fas fa-cog"></i>Admin</a>' : ''}
+                    <a onclick="logout()"><i class="fas fa-sign-out-alt"></i>Logout</a>`;
+            } else {
+                n.innerHTML = `
+                    <li><a onclick="nav('home')">Home</a></li>
+                    <li><a onclick="nav('products')">Services</a></li>
+                    <li><a onclick="nav('login')">Login</a></li>
+                    <li><a onclick="nav('register')" class="btn-primary btn-sm">Register</a></li>`;
+                m.innerHTML = `
+                    <a onclick="nav('home')"><i class="fas fa-home"></i>Home</a>
+                    <a onclick="nav('products')"><i class="fas fa-th"></i>Services</a>
+                    <a onclick="nav('login')"><i class="fas fa-sign-in-alt"></i>Login</a>
+                    <a onclick="nav('register')"><i class="fas fa-user-plus"></i>Register</a>`;
+            }
+        }
+
+        async function logout() { await auth.signOut(); nav('home'); toast('Logged out', 'info'); }
+
+        // ==================== RENDER ENGINE ====================
+        function render() {
+            const app = document.getElementById('app');
+            switch (currentView) {
+                case 'home': renderHome(app); break;
+                case 'login': renderAuth(app, 'login'); break;
+                case 'register': renderAuth(app, 'register'); break;
+                case 'products': renderProductsPage(app); break;
+                case 'product-detail': renderProductDetail(app); break;
+                case 'dashboard': currentUser ? renderUserDashboard(app) : nav('login'); break;
+                case 'admin': isAdmin ? renderAdminDashboard(app) : nav('home'); break;
+            }
+        }
+
+        // ==================== HOME PAGE ====================
+        function renderHome(app) {
+            app.innerHTML = `
+                <section class="hero">
+                    <div style="max-width:200px; margin:0 auto 2rem;">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232563eb'/%3E%3Cstop offset='100%25' style='stop-color:%231d4ed8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)' rx='28'/%3E%3Ctext x='50' y='72' font-size='70' text-anchor='middle' fill='white' font-family='Arial'%3E💎%3C/text%3E%3C/svg%3E" alt="ABM-10 TOPUP" style="width:140px; border-radius:24px; box-shadow:0 10px 30px rgba(37,99,235,0.35);">
+                    </div>
+                    <h1>Welcome to <span style="background:var(--blue-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">ABM-10 TOPUP</span></h1>
+                    <p style="color:var(--text-secondary); max-width:700px; margin:1rem auto; font-size:1.2rem;">Your trusted source for Telegram, TikTok, Instagram, YouTube & gaming top‑ups. Fast delivery, 24/7 support.</p>
+                    <div style="margin-top:2rem; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-lg" onclick="nav('products')"><i class="fas fa-bolt"></i> Browse Services</button>
+                        <button class="btn btn-outline btn-lg" onclick="nav('register')"><i class="fas fa-user-plus"></i> Get Started</button>
+                    </div>
+                </section>
+                <section style="max-width:900px; margin:3rem auto; padding:1rem;">
+                    <div class="glass-card" style="padding:2.5rem; text-align:center;">
+                        <i class="fab fa-telegram fa-3x" style="color:var(--blue-light); margin-bottom:1rem;"></i>
+                        <h3>Need Help?</h3>
+                        <p style="color:var(--text-secondary);">Contact us on Telegram for quick assistance:</p>
+                        <a href="https://t.me/abm10topup" target="_blank" style="font-size:1.3rem; font-weight:700; color:var(--blue-light); text-decoration:none;">@abm10topup</a>
+                    </div>
+                </section>`;
+        }
+
+        // ==================== AUTH PAGES ====================
+        function renderAuth(app, type) {
+            app.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem;">
+                    <div class="glass-card" style="width:100%; max-width:420px; padding:2.5rem;">
+                        <h2 style="text-align:center;"><i class="fas ${type==='login'?'fa-sign-in-alt':'fa-user-plus'}"></i> ${type==='login'?'Sign In':'Create Account'}</h2>
+                        <form onsubmit="handleAuth(event, '${type}')">
+                            <input type="email" id="authEmail" placeholder="Email" required style="width:100%; margin:1rem 0 0.5rem; padding:14px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text); border-radius:10px;">
+                            <input type="password" id="authPass" placeholder="Password" required style="width:100%; margin:0.5rem 0; padding:14px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text); border-radius:10px;">
+                            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:0.8rem;">${type==='login'?'Login':'Register'}</button>
+                        </form>
+                        <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="googleLogin()"><i class="fab fa-google"></i> Continue with Google</button>
+                        <p style="text-align:center; margin-top:1.2rem; font-size:0.9rem;">
+                            ${type==='login' ? "Don't have an account? <a onclick='nav(\"register\")' style='color:var(--blue-light); cursor:pointer;'>Register</a>" : "Already a member? <a onclick='nav(\"login\")' style='color:var(--blue-light); cursor:pointer;'>Login</a>"}
+                        </p>
+                    </div>
+                </div>`;
+        }
+
+        async function handleAuth(e, type) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim();
+            const pass = document.getElementById('authPass').value;
+            try {
+                if (type === 'login') await auth.signInWithEmailAndPassword(email, pass);
+                else await auth.createUserWithEmailAndPassword(email, pass);
+                toast('Success!', 'success');
+                nav('dashboard');
+            } catch (err) { toast(err.message, 'error'); }
+        }
+        async function googleLogin() {
+            try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); nav('dashboard'); }
+            catch (err) { toast(err.message, 'error'); }
+        }
+
+        // ==================== PRODUCTS PAGE ====================
+        async function renderProductsPage(app) {
+            app.innerHTML = `
+                <div style="max-width:1200px; margin:90px auto 2rem; padding:1rem;">
+                    <h2 style="text-align:center; font-size:2rem; margin-bottom:1.5rem;"><i class="fas fa-th-large"></i> Our Services</h2>
+                    <div style="display:flex; gap:10px; margin-bottom:2rem; flex-wrap:wrap;">
+                        <input type="text" id="productSearch" placeholder="Search services..." oninput="filterProducts()" style="flex:1; min-width:220px; padding:12px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text); border-radius:10px;">
+                        <select id="categoryFilter" onchange="filterProducts()" style="padding:12px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text); border-radius:10px;">
+                            <option value="">All Categories</option>
+                            <option>Telegram Services</option><option>TikTok Services</option><option>Instagram Services</option>
+                            <option>YouTube Services</option><option>PUBG UC</option><option>Free Fire Diamonds</option><option>Other Digital Services</option>
+                        </select>
+                    </div>
+                    <div class="product-grid" id="allProductsGrid">${Array(6).fill('<div class="product-card"><div class="product-img-wrapper"><div class="skeleton" style="width:100%;height:100%;"></div></div><div class="product-info"><div class="skeleton" style="height:20px;width:70%;"></div><div class="skeleton" style="height:16px;width:40%;margin-top:8px;"></div></div></div>').join('')}</div>
+                </div>`;
+            loadAllProducts();
+        }
+
+        async function loadAllProducts() {
+            const snap = await db.collection('products').where('status', '==', 'active').get();
+            allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            filterProducts();
+        }
+        function filterProducts() {
+            const search = (document.getElementById('productSearch')?.value || '').toLowerCase();
+            const category = document.getElementById('categoryFilter')?.value || '';
+            let filtered = allProducts.filter(p => (!search || p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search)) && (!category || p.category === category));
+            const grid = document.getElementById('allProductsGrid');
+            if (filtered.length === 0) { grid.innerHTML = '<p style="text-align:center;grid-column:1/-1;color:var(--text-secondary);">No services found.</p>'; return; }
+            grid.innerHTML = filtered.map(p => {
+                const priceDisplay = p.orderType === 'fixed' && p.packages ? `From $${Math.min(...p.packages.map(pk=>pk.price))}` : `$${p.price}/per`;
+                return `<div class="product-card" onclick="selectedProduct=${JSON.stringify(p).replace(/"/g,'&quot;')};nav('product-detail')">
+                    <div class="product-img-wrapper">${p.imageBase64 ? `<img src="${p.imageBase64}" alt="${p.name}">` : `<i class="fas ${getCategoryIcon(p.category)} fa-3x" style="color:var(--blue-light);"></i>`}</div>
+                    <div class="product-info"><h4>${p.name}</h4><p style="color:var(--text-secondary);font-size:0.8rem;">${p.category}</p><p style="font-weight:700;color:var(--blue-light);">${priceDisplay}</p></div>
+                </div>`;
+            }).join('');
+        }
+
+        // ==================== PRODUCT DETAIL & ORDER ====================
+        function renderProductDetail(app) {
+            if (!selectedProduct) return nav('products');
+            const p = selectedProduct;
+            orderTotalBeforeCoupon = p.orderType === 'fixed' && p.packages ? p.packages[0].price : (p.price || 0) * (p.minQty || 100);
+            appliedCoupon = null;
+            app.innerHTML = `<div style="max-width:650px; margin:90px auto; padding:1rem;">
+                <button class="btn btn-outline btn-sm" onclick="nav('products')"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="glass-card" style="padding:2rem; margin-top:1rem;">
+                    <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                        ${p.imageBase64 ? `<img src="${p.imageBase64}" style="width:80px;height:80px;object-fit:cover;border-radius:12px;">` : `<i class="fas ${getCategoryIcon(p.category)} fa-3x" style="color:var(--blue-light);"></i>`}
+                        <div><h2>${p.name}</h2><p style="color:var(--text-secondary);">${p.category}</p></div>
+                    </div>
+                    <div style="margin-top:1.5rem;">
+                        ${p.orderType==='fixed'&&p.packages?`<label>Package</label><select id="pkgSelect" onchange="updateOrderTotal()">${p.packages.map(pk=>`<option value="${pk.price}">${pk.name} — $${pk.price}</option>`)}</select>`:`<label>Quantity (${p.minQty||10} - ${p.maxQty||100000})</label><input type="number" id="qtyInput" value="${p.minQty||100}" min="${p.minQty||10}" oninput="updateOrderTotal()">`}
+                        <div style="font-size:2rem;font-weight:700;margin:1rem 0;color:var(--blue-light);">Total: $<span id="orderTotal">${orderTotalBeforeCoupon.toFixed(2)}</span></div>
+                        <div><label>Coupon</label><div style="display:flex;gap:8px;"><input id="couponCode" placeholder="Optional"><button class="btn btn-outline btn-sm" onclick="applyCoupon()">Apply</button></div></div>
+                        <div style="margin-top:1rem;" id="payMethodsList">Loading...</div>
+                        <div style="margin-top:1rem;"><label>Payment Screenshot</label><input type="file" id="screenshotFile" accept="image/*" onchange="previewScreenshot()"><img id="screenshotPreview" style="max-width:150px;display:none;margin-top:8px;border-radius:8px;"></div>
+                        <button class="btn btn-primary btn-lg" style="width:100%;margin-top:1.5rem;" onclick="submitOrder()" ${currentUser?'':'disabled'}>Place Order</button>
+                    </div>
+                </div>
+            </div>`;
+            loadPaymentMethodsForOrder();
+        }
+
+        function updateOrderTotal() {
+            const p = selectedProduct;
+            let total = 0;
+            if (p.orderType === 'fixed') total = parseFloat(document.getElementById('pkgSelect')?.value || p.price);
+            else total = (p.price||0) * (document.getElementById('qtyInput')?.value || 1);
+            orderTotalBeforeCoupon = total;
+            document.getElementById('orderTotal').textContent = total.toFixed(2);
+        }
+        async function loadPaymentMethodsForOrder() {
+            const snap = await db.collection('paymentMethods').get();
+            allPaymentMethods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            document.getElementById('payMethodsList').innerHTML = allPaymentMethods.map(m => `<div style="background:var(--bg-secondary);padding:12px;border-radius:8px;margin-bottom:6px;display:flex;align-items:center;gap:10px;"><input type="radio" name="paymentMethod" value="${m.id}" checked><span>${m.name} — ${m.accountNumber}</span><i class="fas fa-copy" style="cursor:pointer;color:var(--blue-light);" onclick="copyToClipboard('${m.accountNumber}')"></i></div>`).join('') || '<p>No payment methods available.</p>';
+        }
+        function previewScreenshot() {
+            const file = document.getElementById('screenshotFile').files[0], preview = document.getElementById('screenshotPreview');
+            if (file && file.size <= 2*1024*1024) { const r = new FileReader(); r.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; }; r.readAsDataURL(file); }
+            else { preview.style.display = 'none'; if(file) toast('Image too large (max 2MB)', 'error'); }
+        }
+        async function applyCoupon() {
+            const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            if (!code) return toast('Enter code', 'error');
+            const snap = await db.collection('coupons').where('code','==',code).limit(1).get();
+            if (snap.empty) return toast('Invalid coupon', 'error');
+            const c = snap.docs[0].data();
+            if (c.maxUsage && (c.used||0) >= c.maxUsage) return toast('Coupon limit reached', 'error');
+            if (c.expiresAt && Date.now() > c.expiresAt) return toast('Coupon expired', 'error');
+            appliedCoupon = { id: snap.docs[0].id, ...c };
+            document.getElementById('orderTotal').textContent = (orderTotalBeforeCoupon * (1 - c.discount/100)).toFixed(2);
+            toast(`${c.discount}% discount applied!`, 'success');
+        }
+        async function submitOrder() {
+            if (!currentUser) return toast('Login required', 'error');
+            const p = selectedProduct;
+            const file = document.getElementById('screenshotFile').files[0];
+            if (!file) return toast('Upload payment screenshot', 'error');
+            const pmId = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+            if (!pmId) return toast('Select payment method', 'error');
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64 = e.target.result;
+                let quantity, totalPrice, packageName = null;
+                if (p.orderType === 'fixed') {
+                    const sel = document.getElementById('pkgSelect');
+                    packageName = sel.options[sel.selectedIndex].text.split(' — ')[0];
+                    totalPrice = parseFloat(sel.value);
+                    quantity = 1;
+                } else {
+                    quantity = parseInt(document.getElementById('qtyInput').value);
+                    totalPrice = parseFloat(document.getElementById('orderTotal').textContent);
+                }
+                await db.collection('orders').add({
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    productId: p.id,
+                    productName: p.name,
+                    quantity, totalPrice, packageName,
+                    paymentMethodId: pmId,
+                    screenshotBase64: base64,
+                    status: 'pending',
+                    createdAt: Date.now(),
+                    coupon: appliedCoupon ? { code: appliedCoupon.code, discount: appliedCoupon.discount } : null
+                });
+                if (appliedCoupon) await db.collection('coupons').doc(appliedCoupon.id).update({ used: firebase.firestore.FieldValue.increment(1) });
+                await db.collection('notifications').add({ targetId: 'admin', title: 'New Order', message: `${currentUser.email} ordered ${p.name}`, read: false, createdAt: Date.now() });
+                toast('Order placed!', 'success');
+                nav('dashboard');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ==================== USER DASHBOARD ====================
+        function renderUserDashboard(app) {
+            app.innerHTML = `<div class="dashboard-layout"><div class="sidebar"><ul class="sidebar-nav"><li><a class="active" onclick="loadUserOrders()">My Orders</a></li><li><a onclick="loadUserNotifications()">Notifications</a></li></ul></div><div class="main-content" id="userDashContent"></div></div>`;
+            loadUserOrders();
+        }
+        async function loadUserOrders() {
+            const snap = await db.collection('orders').where('userId','==',currentUser.uid).orderBy('createdAt','desc').get();
+            const orders = snap.docs.map(d=>({id:d.id,...d.data()}));
+            document.getElementById('userDashContent').innerHTML = `<h3>My Orders</h3>${orders.length===0?'<p>No orders yet.</p>':orders.map(o=>`<div class="glass-card" style="padding:1rem;margin-bottom:0.8rem;display:flex;align-items:center;gap:1rem;"><div style="flex:1;"><strong>${o.productName}</strong> ${o.packageName?`(${o.packageName})`:''}<br><small>$${o.totalPrice.toFixed(2)} · ${new Date(o.createdAt).toLocaleDateString()}</small></div><span class="badge badge-${o.status}">${o.status}</span>${o.screenshotBase64?`<img src="${o.screenshotBase64}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer;" onclick="zoomImage('${o.screenshotBase64}')">`:''}</div>`).join('')}`;
+        }
+        async function loadUserNotifications() {
+            const snap = await db.collection('notifications').where('targetId','==',currentUser.uid).orderBy('createdAt','desc').get();
+            document.getElementById('userDashContent').innerHTML = `<h3>Notifications</h3>${snap.empty?'<p>No notifications.</p>':snap.docs.map(d=>`<div class="glass-card" style="padding:0.8rem;margin-bottom:0.5rem;">${d.data().message}</div>`).join('')}`;
+        }
+
+        // ==================== ADMIN DASHBOARD ====================
+        function renderAdminDashboard(app) {
+            app.innerHTML = `<div class="dashboard-layout"><div class="sidebar"><ul class="sidebar-nav">
+                <li><a class="${adminSubView==='overview'?'active':''}" onclick="setAdminView('overview')">Overview</a></li>
+                <li><a class="${adminSubView==='orders'?'active':''}" onclick="setAdminView('orders')">Orders</a></li>
+                <li><a class="${adminSubView==='products'?'active':''}" onclick="setAdminView('products')">Products</a></li>
+                <li><a class="${adminSubView==='payments'?'active':''}" onclick="setAdminView('payments')">Payments</a></li>
+                <li><a class="${adminSubView==='coupons'?'active':''}" onclick="setAdminView('coupons')">Coupons</a></li>
+                <li><a class="${adminSubView==='users'?'active':''}" onclick="setAdminView('users')">Users</a></li>
+            </ul></div><div class="main-content" id="adminContent"></div></div>`;
+            loadAdminContent();
+        }
+        function loadAdminContent() {
+            const c = document.getElementById('adminContent');
+            switch (adminSubView) {
+                case 'overview': loadAdminOverview(c); break;
+                case 'orders': loadAdminOrders(c); break;
+                case 'products': loadAdminProducts(c); break;
+                case 'payments': loadAdminPaymentMethods(c); break;
+                case 'coupons': loadAdminCoupons(c); break;
+                case 'users': loadAdminUsers(c); break;
+            }
+        }
+        async function loadAdminOverview(c) {
+            const [ordersSnap, usersSnap] = await Promise.all([db.collection('orders').get(), db.collection('users').get()]);
+            const orders = ordersSnap.docs.map(d=>d.data());
+            const rev = orders.filter(o=>o.status==='completed').reduce((s,o)=>s+(o.totalPrice||0),0);
+            c.innerHTML = `<h3>Dashboard Overview</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;"><div class="glass-card" style="padding:1.5rem;">Revenue: $${rev.toFixed(2)}</div><div class="glass-card" style="padding:1.5rem;">Users: ${usersSnap.size}</div><div class="glass-card" style="padding:1.5rem;">Orders: ${ordersSnap.size}</div></div>`;
+        }
+        async function loadAdminOrders(c) {
+            const snap = await db.collection('orders').orderBy('createdAt','desc').get();
+            c.innerHTML = `<h3>Order Management</h3>`+snap.docs.map(d=>{const o=d.data();return `<div class="glass-card" style="padding:1rem;margin-bottom:0.8rem;"><strong>${o.userEmail}</strong> — ${o.productName} $${o.totalPrice} <span class="badge badge-${o.status}">${o.status}</span>${o.screenshotBase64?`<img src="${o.screenshotBase64}" width="60" style="border-radius:6px;cursor:pointer;" onclick="zoomImage('${o.screenshotBase64}')">`:''}<div>${o.status==='pending'?`<button class="btn btn-success btn-sm" onclick="updateOrderStatus('${d.id}','active')">Accept</button> <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${d.id}','rejected')">Reject</button>`:''}${o.status==='active'?`<button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${d.id}','completed')">Mark Completed</button>`:''}</div></div>`}).join('');
+        }
+        async function updateOrderStatus(orderId, newStatus) {
+            if (!confirm(`Mark as ${newStatus}?`)) return;
+            await db.collection('orders').doc(orderId).update({ status: newStatus });
+            toast(`Order ${newStatus}`, 'success');
+            loadAdminOrders(document.getElementById('adminContent'));
+        }
+        async function loadAdminProducts(c) {
+            const snap = await db.collection('products').get();
+            allProducts = snap.docs.map(d=>({id:d.id,...d.data()}));
+            c.innerHTML = `<h3>Products</h3><button class="btn btn-primary btn-sm" onclick="openProductModal()">Add Product</button><div style="margin-top:1rem;">${allProducts.map(p=>`<div class="glass-card" style="padding:1rem;display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem;">${p.imageBase64?`<img src="${p.imageBase64}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;">`:`<i class="fas ${getCategoryIcon(p.category)} fa-2x" style="color:var(--blue-light);"></i>`}<div style="flex:1;"><strong>${p.name}</strong> - $${p.price}</div><button class="btn btn-outline btn-sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button></div>`).join('')}</div>`;
+        }
+        function openProductModal(id=null) {
+            const p = id ? allProducts.find(p=>p.id===id) : {};
+            document.getElementById('modalContent').innerHTML = `<h3>${id?'Edit':'Add'} Product</h3><input id="prodName" placeholder="Name" value="${p.name||''}" style="width:100%;margin:0.5rem 0;padding:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);border-radius:8px;"><input id="prodPrice" type="number" step="0.01" placeholder="Price" value="${p.price||''}" style="width:100%;margin:0.5rem 0;padding:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);border-radius:8px;"><select id="prodCategory" style="width:100%;margin:0.5rem 0;padding:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);border-radius:8px;"><option>Telegram Services</option><option>TikTok Services</option><option>Instagram Services</option><option>YouTube Services</option><option>PUBG UC</option><option>Free Fire Diamonds</option></select><input type="file" id="prodImageFile" accept="image/*" style="margin:0.5rem 0;">${p.imageBase64?`<img src="${p.imageBase64}" style="width:80px;border-radius:8px;">`:''}<button class="btn btn-primary" onclick="saveProduct('${id||''}')">Save</button>`;
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+        function saveProduct(id) {
+            const name = document.getElementById('prodName').value, price = parseFloat(document.getElementById('prodPrice').value), category = document.getElementById('prodCategory').value;
+            const file = document.getElementById('prodImageFile').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = { name, price, category, status:'active', imageBase64: e.target.result };
+                    if (id) await db.collection('products').doc(id).update(data);
+                    else await db.collection('products').add({...data, createdAt:Date.now()});
+                    closeModal(); loadAdminProducts(document.getElementById('adminContent'));
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const data = { name, price, category, status:'active' };
+                if (id) { if (allProducts.find(p=>p.id===id)?.imageBase64) data.imageBase64 = allProducts.find(p=>p.id===id).imageBase64; await db.collection('products').doc(id).update(data); }
+                else await db.collection('products').add({...data, createdAt:Date.now()});
+                closeModal(); loadAdminProducts(document.getElementById('adminContent'));
+            }
+        }
+        async function deleteProduct(id) { if (confirm('Delete?')) { await db.collection('products').doc(id).delete(); loadAdminProducts(document.getElementById('adminContent')); } }
+        async function loadAdminPaymentMethods(c) {
+            const snap = await db.collection('paymentMethods').get();
+            c.innerHTML = `<h3>Payment Methods</h3><button class="btn btn-primary btn-sm" onclick="openPaymentModal()">Add Method</button><div style="margin-top:1rem;">${snap.docs.map(d=>`<div class="glass-card" style="padding:0.8rem;margin-bottom:0.5rem;">${d.data().name} — ${d.data().accountNumber}</div>`).join('')}</div>`;
+        }
+        function openPaymentModal() {
+            document.getElementById('modalContent').innerHTML = `<h3>Add Payment Method</h3><input id="pmName" placeholder="Name" style="width:100%;margin:0.5rem 0;padding:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);border-radius:8px;"><input id="pmAccount" placeholder="Account Number" style="width:100%;margin:0.5rem 0;padding:10px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text);border-radius:8px;"><button class="btn btn-primary" onclick="savePaymentMethod()">Save</button>`;
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+        async function savePaymentMethod() {
+            await db.collection('paymentMethods').add({ name:document.getElementById('pmName').value, accountNumber:document.getElementById('pmAccount').value });
+            closeModal(); loadAdminPaymentMethods(document.getElementById('adminContent'));
+        }
+        function loadAdminCoupons(c) { c.innerHTML = `<h3>Coupons</h3><p>Feature available in full version.</p>`; }
+        function loadAdminUsers(c) {
+            db.collection('users').get().then(snap => { c.innerHTML = `<h3>Users</h3>`+snap.docs.map(d=>`<div>${d.data().email}</div>`).join(''); });
+        }
+
+        // Utilities
+        function copyToClipboard(text) { navigator.clipboard.writeText(text); toast('Copied!', 'success'); }
+        function zoomImage(url) { document.getElementById('imgZoomSrc').src=url; document.getElementById('imgZoomOverlay').classList.remove('hidden'); }
+        function closeZoom() { document.getElementById('imgZoomOverlay').classList.add('hidden'); }
+        function closeModal() { document.getElementById('modalOverlay').classList.add('hidden'); }
+        function toast(msg, type='info') {
+            const t = document.createElement('div'); t.className=`toast toast-${type}`; t.textContent=msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(()=>t.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
