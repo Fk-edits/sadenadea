@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SASS – Permission Request</title>
 
+  <!-- Read saved theme immediately -->
   <script>
     (function(){
       var theme = localStorage.getItem('sass_theme') || 'dark';
@@ -154,6 +155,7 @@
 
     const $ = s => document.querySelector(s);
 
+    // Section A-Z
     let sectionOptions = '';
     for (let i = 65; i <= 90; i++) {
       const letter = String.fromCharCode(i);
@@ -198,7 +200,7 @@
       }
     });
 
-    // ========== UPDATED SUBMIT HANDLER ==========
+    // ========== FIXED SUBMIT HANDLER (safe for students) ==========
     $('#permission-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -219,7 +221,7 @@
         return;
       }
 
-      // Safe re‑check (failure won't block submission)
+      // Optional limit check (now safe – failure won't block submission)
       try {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
