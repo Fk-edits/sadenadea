@@ -73,7 +73,6 @@ function showSection(section) {
     case 'subjects': loadSubjectsSection(); break;
     case 'announcements': loadAnnouncementsSection(); break;
     case 'permissions': loadPermissionsSection(); break;
-    case 'apikeys': loadApiKeysSection(); break;   // NEW
     case 'settings': loadSettingsSection(); break;
   }
 }
@@ -110,7 +109,7 @@ async function loadDashboard() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== STATISTICS ====================
+// ==================== STATISTICS (with Top Students) ====================
 async function loadStatistics() {
   try {
     const styles = getComputedStyle(document.documentElement);
@@ -122,11 +121,55 @@ async function loadStatistics() {
     const red = '#ef4444';
     const pink = styles.getPropertyValue('--pink').trim() || '#ec4899';
 
+    // Prepare top students data
+    const marksSnapAll = await getDocs(collection(db, "marks"));
+    const studentTotalMarks = {};
+    marksSnapAll.forEach(m => {
+      const d = m.data();
+      if (!studentTotalMarks[d.studentId]) studentTotalMarks[d.studentId] = 0;
+      studentTotalMarks[d.studentId] += d.score;
+    });
+
+    // Get student names
+    const studentsSnapAll = await getDocs(collection(db, "students"));
+    const studentNames = {};
+    studentsSnapAll.forEach(doc => {
+      const s = doc.data();
+      studentNames[s.studentId || doc.id] = s.name || s.studentId;
+    });
+
+    // Build sorted list of top 5
+    const topStudents = Object.entries(studentTotalMarks)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([studentId, total]) => ({
+        name: studentNames[studentId] || studentId,
+        total
+      }));
+
+    let topStudentsHtml = '';
+    if (topStudents.length === 0) {
+      topStudentsHtml = '<p style="color:var(--text2);">No marks recorded yet.</p>';
+    } else {
+      topStudentsHtml = '<ol>';
+      topStudents.forEach((s, idx) => {
+        topStudentsHtml += `<li><strong>${s.name}</strong> – ${s.total} points</li>`;
+      });
+      topStudentsHtml += '</ol>';
+    }
+
+    // Render charts & top students card
     $('#admin-main').innerHTML = `
       <h2 class="section-title">Statistics</h2>
       <div class="card"><h3>Teachers per Subject</h3><div class="chart-container"><canvas id="teacherChart" height="200"></canvas></div></div>
       <div class="card"><h3>Students per Grade</h3><div class="chart-container"><canvas id="studentChart" height="200"></canvas></div></div>
+      <div class="card">
+        <h3>Top 5 Students (by Total Marks)</h3>
+        ${topStudentsHtml}
+      </div>
     `;
+
+    // Teacher chart
     const tSnap = await getDocs(collection(db, "teachers"));
     const subjCounts = {};
     tSnap.forEach(doc => {
@@ -138,6 +181,8 @@ async function loadStatistics() {
       data: { labels: Object.keys(subjCounts), datasets: [{ data: Object.values(subjCounts), backgroundColor: [primary, accent, gold, green, red, pink] }] },
       options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: textColor } } } }
     });
+
+    // Student chart
     const sSnap = await getDocs(collection(db, "students"));
     const gradeCounts = {};
     sSnap.forEach(doc => {
@@ -152,7 +197,7 @@ async function loadStatistics() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== TEACHERS (original functions) ====================
+// ==================== TEACHERS (unchanged) ====================
 async function loadTeachersSection() {
   try {
     const tSnap = await getDocs(collection(db, "teachers"));
@@ -298,7 +343,7 @@ async function showAddTeacherForm() {
   });
 }
 
-// ==================== STUDENTS (original) ====================
+// ==================== STUDENTS (unchanged) ====================
 async function loadStudentsSection() {
   try {
     const sSnap = await getDocs(collection(db, "students"));
@@ -344,7 +389,7 @@ async function loadStudentsSection() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== SUBJECTS (original) ====================
+// ==================== SUBJECTS (unchanged) ====================
 async function loadSubjectsSection() {
   try {
     const subjectsSnap = await getDocs(collection(db, "subjects"));
@@ -391,7 +436,7 @@ async function loadSubjectsSection() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== GROUPS (CLASSES) (original) ====================
+// ==================== GROUPS (CLASSES) (unchanged) ====================
 async function loadGroupsSection() {
   try {
     let sectionOptions = '';
@@ -796,7 +841,7 @@ async function openStudentEditModal(docId) {
   };
 }
 
-// ==================== ANNOUNCEMENTS (original) ====================
+// ==================== ANNOUNCEMENTS (unchanged) ====================
 async function loadAnnouncementsSection() {
   try {
     let html = `<h2 class="section-title">Announcements</h2>`;
@@ -826,7 +871,7 @@ async function loadAnnouncementsSection() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== PERMISSIONS (original) ====================
+// ==================== PERMISSIONS (unchanged) ====================
 async function loadPermissionsSection() {
   try {
     let html = `<h2 class="section-title">Permission Requests</h2>`;
@@ -869,11 +914,14 @@ async function loadPermissionsSection() {
   }
 }
 
-// ==================== API KEYS (NEW) ====================
-async function loadApiKeysSection() {
-  const main = $('#admin-main');
-  main.innerHTML = `
-    <h2 class="section-title">API Keys</h2>
+// ==================== SETTINGS (with API key + Danger Zone fix) ====================
+async function loadSettingsSection() {
+  const adminEmail = auth.currentUser?.email || 'Unknown';
+  $('#admin-main').innerHTML = `
+    <h2 class="section-title">Settings</h2>
+    <div class="card"><h3>Profile</h3><p><strong>Email:</strong> ${adminEmail}</p><p><strong>Role:</strong> Administrator</p></div>
+    <div class="card"><h3>Theme</h3><button class="btn-primary" id="toggle-theme-btn"><i class="fa-solid fa-palette"></i> Toggle Light/Dark</button></div>
+    <div class="card"><h3>Change Password</h3><input type="password" id="new-password" placeholder="New password"><button class="btn-primary" id="change-password-btn"><i class="fa-solid fa-key"></i> Update</button><p class="msg" id="password-msg"></p></div>
     <div class="card">
       <h3>OpenRouter AI Key</h3>
       <div class="form-group">
@@ -883,9 +931,10 @@ async function loadApiKeysSection() {
       <button class="btn-primary" id="save-api-key-btn"><i class="fa-solid fa-save"></i> Save Key</button>
       <p class="msg" id="api-key-msg"></p>
     </div>
+    <div class="card"><h3>Danger Zone</h3><button class="btn-primary btn-danger" id="reset-firestore-btn"><i class="fa-solid fa-trash"></i> Reset Data</button><p class="msg" id="reset-msg"></p></div>
   `;
 
-  // Load current key from Firestore
+  // Load current API key
   try {
     const docSnap = await getDoc(doc(db, "settings", "api_keys"));
     if (docSnap.exists()) {
@@ -895,6 +944,7 @@ async function loadApiKeysSection() {
     console.error(e);
   }
 
+  // Save API key
   $('#save-api-key-btn').addEventListener('click', async () => {
     const key = $('#openrouter-key').value.trim();
     const msg = $('#api-key-msg');
@@ -912,19 +962,8 @@ async function loadApiKeysSection() {
       msg.className = 'msg error';
     }
   });
-}
 
-// ==================== SETTINGS (original) ====================
-async function loadSettingsSection() {
-  const adminEmail = auth.currentUser?.email || 'Unknown';
-  $('#admin-main').innerHTML = `
-    <h2 class="section-title">Settings</h2>
-    <div class="card"><h3>Profile</h3><p><strong>Email:</strong> ${adminEmail}</p><p><strong>Role:</strong> Administrator</p></div>
-    <div class="card"><h3>Theme</h3><button class="btn-primary" id="toggle-theme-btn"><i class="fa-solid fa-palette"></i> Toggle Light/Dark</button></div>
-    <div class="card"><h3>Change Password</h3><input type="password" id="new-password" placeholder="New password"><button class="btn-primary" id="change-password-btn"><i class="fa-solid fa-key"></i> Update</button><p class="msg" id="password-msg"></p></div>
-    <div class="card"><h3>Danger Zone</h3><button class="btn-primary btn-danger" id="reset-firestore-btn"><i class="fa-solid fa-trash"></i> Reset Data</button><p class="msg" id="reset-msg"></p></div>
-  `;
-
+  // Theme toggle
   document.getElementById('toggle-theme-btn').addEventListener('click', () => {
     const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
@@ -932,6 +971,7 @@ async function loadSettingsSection() {
     updateThemeIcon();
   });
 
+  // Change password
   $('#change-password-btn').addEventListener('click', async () => {
     const newPass = $('#new-password').value.trim();
     const msg = $('#password-msg');
@@ -942,37 +982,39 @@ async function loadSettingsSection() {
     } catch (e) { msg.textContent = e.message; msg.className = 'msg error'; }
   });
 
-$('#reset-firestore-btn').addEventListener('click', async () => {
-  if (!confirm('Delete ALL data except admin accounts? This cannot be undone.')) return;
+  // Danger Zone – clear all except admins
+  $('#reset-firestore-btn').addEventListener('click', async () => {
+    if (!confirm('Delete ALL data except admin accounts? This cannot be undone.')) return;
 
-  const collections = [
-    'teachers',
-    'students',
-    'groups',
-    'marks',
-    'announcements',
-    'permissions',
-    'subjects',
-    'chat',
-    'ai_chats',
-    'settings'
-  ];
-  const msg = $('#reset-msg');
+    const collections = [
+      'teachers',
+      'students',
+      'groups',
+      'marks',
+      'announcements',
+      'permissions',
+      'subjects',
+      'chat',
+      'ai_chats',
+      'settings'
+    ];
+    const msg = $('#reset-msg');
 
-  try {
-    for (const col of collections) {
-      const snap = await getDocs(collection(db, col));
-      const deletions = [];
-      snap.forEach(doc => deletions.push(deleteDoc(doc.ref)));
-      await Promise.all(deletions);
+    try {
+      for (const col of collections) {
+        const snap = await getDocs(collection(db, col));
+        const deletions = [];
+        snap.forEach(doc => deletions.push(deleteDoc(doc.ref)));
+        await Promise.all(deletions);
+      }
+      msg.textContent = 'All data (except admins) has been cleared.';
+      msg.className = 'msg success';
+    } catch (e) {
+      msg.textContent = 'Error: ' + e.message;
+      msg.className = 'msg error';
     }
-    msg.textContent = 'All data (except admins) has been cleared.';
-    msg.className = 'msg success';
-  } catch (e) {
-    msg.textContent = 'Error: ' + e.message;
-    msg.className = 'msg error';
-  }
-});
+  });
+}
 
 // Keep modal close function accessible
 window.closeModal = (id) => document.getElementById(id)?.classList.remove('active');
