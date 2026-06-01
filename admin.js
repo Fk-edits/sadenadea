@@ -942,21 +942,37 @@ async function loadSettingsSection() {
     } catch (e) { msg.textContent = e.message; msg.className = 'msg error'; }
   });
 
-  $('#reset-firestore-btn').addEventListener('click', async () => {
-    if (!confirm('Delete all data? This cannot be undone.')) return;
-    const collections = ['teachers', 'students', 'groups', 'marks', 'announcements', 'permissions'];
-    const msg = $('#reset-msg');
-    try {
-      for (const col of collections) {
-        const snap = await getDocs(collection(db, col));
-        const deletions = [];
-        snap.forEach(doc => deletions.push(deleteDoc(doc.ref)));
-        await Promise.all(deletions);
-      }
-      msg.textContent = 'All data reset.'; msg.className = 'msg success';
-    } catch(e) { msg.textContent = 'Error: ' + e.message; msg.className = 'msg error'; }
-  });
-}
+$('#reset-firestore-btn').addEventListener('click', async () => {
+  if (!confirm('Delete ALL data except admin accounts? This cannot be undone.')) return;
+
+  const collections = [
+    'teachers',
+    'students',
+    'groups',
+    'marks',
+    'announcements',
+    'permissions',
+    'subjects',
+    'chat',
+    'ai_chats',
+    'settings'
+  ];
+  const msg = $('#reset-msg');
+
+  try {
+    for (const col of collections) {
+      const snap = await getDocs(collection(db, col));
+      const deletions = [];
+      snap.forEach(doc => deletions.push(deleteDoc(doc.ref)));
+      await Promise.all(deletions);
+    }
+    msg.textContent = 'All data (except admins) has been cleared.';
+    msg.className = 'msg success';
+  } catch (e) {
+    msg.textContent = 'Error: ' + e.message;
+    msg.className = 'msg error';
+  }
+});
 
 // Keep modal close function accessible
 window.closeModal = (id) => document.getElementById(id)?.classList.remove('active');
