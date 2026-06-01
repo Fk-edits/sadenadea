@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SASS – Permission Request</title>
 
-  <!-- Read saved theme immediately (no flash) -->
   <script>
     (function(){
       var theme = localStorage.getItem('sass_theme') || 'dark';
@@ -13,21 +12,12 @@
     })();
   </script>
 
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- Central theme (must be first) -->
   <link rel="stylesheet" href="theme.css">
 
   <style>
-    /* very local overrides */
-    :root {
-      --red: #ef4444;
-      --radius: 12px;
-    }
-
+    :root { --red: #ef4444; --radius: 12px; }
     * { margin:0; padding:0; box-sizing:border-box; }
-
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
@@ -39,7 +29,6 @@
       padding: 20px;
       transition: background 0.3s, color 0.3s;
     }
-
     .permission-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -49,7 +38,6 @@
       max-width: 450px;
       box-shadow: var(--shadow);
     }
-
     .logo {
       text-align: center;
       font-size: 2rem;
@@ -59,9 +47,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
     .form-group { margin-bottom: 16px; }
-
     label {
       display: block;
       font-size: 0.85rem;
@@ -70,7 +56,6 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-
     input, select, textarea {
       width: 100%;
       padding: 12px 14px;
@@ -82,12 +67,10 @@
       outline: none;
       transition: border 0.3s, box-shadow 0.3s;
     }
-
     input:focus, select:focus, textarea:focus {
       border-color: var(--blue);
       box-shadow: 0 0 0 3px var(--glow);
     }
-
     .btn-primary {
       width: 100%;
       padding: 12px;
@@ -105,38 +88,14 @@
       justify-content: center;
       gap: 6px;
     }
-
     .btn-primary:hover { opacity: 0.9; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
     .message { margin-top: 12px; font-size: 0.85rem; text-align: center; }
     .success { color: var(--green); }
-    .error   { color: var(--red); }
-
-    .remaining {
-      font-size: 0.8rem;
-      color: var(--text2);
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid var(--border);
-      border-top-color: var(--blue);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
+    .error { color: var(--red); }
+    .remaining { font-size: 0.8rem; color: var(--text2); text-align: center; margin-top: 8px; }
+    .loading { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -191,18 +150,10 @@
   <script type="module">
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import {
-      collection,
-      addDoc,
-      query,
-      where,
-      getDocs,
-      serverTimestamp
-    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
     const $ = s => document.querySelector(s);
 
-    // Section A-Z
     let sectionOptions = '';
     for (let i = 65; i <= 90; i++) {
       const letter = String.fromCharCode(i);
@@ -247,6 +198,7 @@
       }
     });
 
+    // ========== UPDATED SUBMIT HANDLER ==========
     $('#permission-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -267,19 +219,24 @@
         return;
       }
 
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const requestsQ = query(
-        collection(db, "permissions"),
-        where("uid", "==", currentUser.uid),
-        where("timestamp", ">=", startOfMonth)
-      );
-      const requestsSnap = await getDocs(requestsQ);
+      // Safe re‑check (failure won't block submission)
+      try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const requestsQ = query(
+          collection(db, "permissions"),
+          where("uid", "==", currentUser.uid),
+          where("timestamp", ">=", startOfMonth)
+        );
+        const requestsSnap = await getDocs(requestsQ);
 
-      if (requestsSnap.size >= MAX_REQUESTS_PER_MONTH) {
-        $('#form-message').textContent = 'You have already used all your requests for this month.';
-        $('#form-message').className = 'message error';
-        return;
+        if (requestsSnap.size >= MAX_REQUESTS_PER_MONTH) {
+          $('#form-message').textContent = 'You have already used all your requests for this month.';
+          $('#form-message').className = 'message error';
+          return;
+        }
+      } catch (readErr) {
+        console.warn('Could not check remaining requests, allowing submission.');
       }
 
       try {
@@ -297,11 +254,24 @@
         $('#form-message').className = 'message success';
         $('#permission-form').reset();
 
-        const newCount = requestsSnap.size + 1;
-        const remaining = MAX_REQUESTS_PER_MONTH - newCount;
-        $('#remaining-display').textContent = `You have ${Math.max(remaining, 0)} request(s) remaining this month.`;
-        if (remaining <= 0) {
-          $('#submit-btn').disabled = true;
+        // Update remaining counter (optional)
+        try {
+          const now = new Date();
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+          const requestsQ = query(
+            collection(db, "permissions"),
+            where("uid", "==", currentUser.uid),
+            where("timestamp", ">=", startOfMonth)
+          );
+          const requestsSnap = await getDocs(requestsQ);
+          const newCount = requestsSnap.size;
+          const remaining = MAX_REQUESTS_PER_MONTH - newCount;
+          $('#remaining-display').textContent = `You have ${Math.max(remaining, 0)} request(s) remaining this month.`;
+          if (remaining <= 0) {
+            $('#submit-btn').disabled = true;
+          }
+        } catch (e) {
+          console.warn('Could not update remaining count');
         }
       } catch (err) {
         console.error(err);
