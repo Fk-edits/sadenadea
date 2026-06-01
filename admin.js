@@ -9,7 +9,6 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
 // ==================== THEME ====================
-// Initialise theme icon
 const savedTheme = localStorage.getItem('sass_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 const updateThemeIcon = () => {
@@ -74,6 +73,7 @@ function showSection(section) {
     case 'subjects': loadSubjectsSection(); break;
     case 'announcements': loadAnnouncementsSection(); break;
     case 'permissions': loadPermissionsSection(); break;
+    case 'apikeys': loadApiKeysSection(); break;   // NEW
     case 'settings': loadSettingsSection(); break;
   }
 }
@@ -110,17 +110,16 @@ async function loadDashboard() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== STATISTICS (dynamic theme colours) ====================
+// ==================== STATISTICS ====================
 async function loadStatistics() {
   try {
-    // Get theme colours for charts
     const styles = getComputedStyle(document.documentElement);
     const primary = styles.getPropertyValue('--primary').trim() || '#38bdf8';
     const accent = styles.getPropertyValue('--accent').trim() || '#818cf8';
     const textColor = styles.getPropertyValue('--text2').trim() || '#94a3b8';
     const gold = styles.getPropertyValue('--gold').trim() || '#facc15';
     const green = styles.getPropertyValue('--green').trim() || '#10b981';
-    const red = styles.getPropertyValue('--red') || '#ef4444';
+    const red = '#ef4444';
     const pink = styles.getPropertyValue('--pink').trim() || '#ec4899';
 
     $('#admin-main').innerHTML = `
@@ -136,17 +135,8 @@ async function loadStatistics() {
     });
     new Chart($('#teacherChart'), {
       type: 'doughnut',
-      data: {
-        labels: Object.keys(subjCounts),
-        datasets: [{
-          data: Object.values(subjCounts),
-          backgroundColor: [primary, accent, gold, green, red, pink]
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
-      }
+      data: { labels: Object.keys(subjCounts), datasets: [{ data: Object.values(subjCounts), backgroundColor: [primary, accent, gold, green, red, pink] }] },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: textColor } } } }
     });
     const sSnap = await getDocs(collection(db, "students"));
     const gradeCounts = {};
@@ -156,23 +146,13 @@ async function loadStatistics() {
     });
     new Chart($('#studentChart'), {
       type: 'bar',
-      data: {
-        labels: Object.keys(gradeCounts),
-        datasets: [{ label: 'Students', data: Object.values(gradeCounts), backgroundColor: accent }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { color: textColor } },
-          y: { ticks: { color: textColor }, beginAtZero: true }
-        }
-      }
+      data: { labels: Object.keys(gradeCounts), datasets: [{ label: 'Students', data: Object.values(gradeCounts), backgroundColor: accent }] },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor }, beginAtZero: true } } }
     });
   } catch (err) { console.error(err); }
 }
 
-// ==================== TEACHERS ====================
+// ==================== TEACHERS (original functions) ====================
 async function loadTeachersSection() {
   try {
     const tSnap = await getDocs(collection(db, "teachers"));
@@ -318,7 +298,7 @@ async function showAddTeacherForm() {
   });
 }
 
-// ==================== STUDENTS ====================
+// ==================== STUDENTS (original) ====================
 async function loadStudentsSection() {
   try {
     const sSnap = await getDocs(collection(db, "students"));
@@ -364,7 +344,7 @@ async function loadStudentsSection() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== SUBJECTS ====================
+// ==================== SUBJECTS (original) ====================
 async function loadSubjectsSection() {
   try {
     const subjectsSnap = await getDocs(collection(db, "subjects"));
@@ -411,7 +391,7 @@ async function loadSubjectsSection() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== GROUPS (CLASSES) ====================
+// ==================== GROUPS (CLASSES) (original) ====================
 async function loadGroupsSection() {
   try {
     let sectionOptions = '';
@@ -720,7 +700,6 @@ async function showGroupDetail(grade, section) {
 
     await refreshClassStudents();
 
-    // Excel import
     $('#import-excel-btn').addEventListener('click', async () => {
       const file = document.getElementById('excel-file').files[0];
       const msg = $('#excel-msg');
@@ -753,7 +732,6 @@ async function showGroupDetail(grade, section) {
       reader.readAsArrayBuffer(file);
     });
 
-    // Manual add
     $('#add-student-btn').addEventListener('click', async () => {
       const name = $('#student-name').value.trim();
       const email = $('#student-email').value.trim();
@@ -771,7 +749,6 @@ async function showGroupDetail(grade, section) {
   } catch (err) { console.error(err); }
 }
 
-// ==================== STUDENT EDIT MODAL ====================
 async function openStudentEditModal(docId) {
   let sectionOptions = '';
   for (let i = 65; i <= 90; i++) {
@@ -819,7 +796,7 @@ async function openStudentEditModal(docId) {
   };
 }
 
-// ==================== ANNOUNCEMENTS ====================
+// ==================== ANNOUNCEMENTS (original) ====================
 async function loadAnnouncementsSection() {
   try {
     let html = `<h2 class="section-title">Announcements</h2>`;
@@ -849,7 +826,7 @@ async function loadAnnouncementsSection() {
   } catch (err) { console.error(err); }
 }
 
-// ==================== PERMISSIONS ====================
+// ==================== PERMISSIONS (original) ====================
 async function loadPermissionsSection() {
   try {
     let html = `<h2 class="section-title">Permission Requests</h2>`;
@@ -892,7 +869,52 @@ async function loadPermissionsSection() {
   }
 }
 
-// ==================== SETTINGS ====================
+// ==================== API KEYS (NEW) ====================
+async function loadApiKeysSection() {
+  const main = $('#admin-main');
+  main.innerHTML = `
+    <h2 class="section-title">API Keys</h2>
+    <div class="card">
+      <h3>OpenRouter AI Key</h3>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="text" id="openrouter-key" placeholder="sk-or-...">
+      </div>
+      <button class="btn-primary" id="save-api-key-btn"><i class="fa-solid fa-save"></i> Save Key</button>
+      <p class="msg" id="api-key-msg"></p>
+    </div>
+  `;
+
+  // Load current key from Firestore
+  try {
+    const docSnap = await getDoc(doc(db, "settings", "api_keys"));
+    if (docSnap.exists()) {
+      $('#openrouter-key').value = docSnap.data().openrouter || '';
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  $('#save-api-key-btn').addEventListener('click', async () => {
+    const key = $('#openrouter-key').value.trim();
+    const msg = $('#api-key-msg');
+    if (!key) {
+      msg.textContent = 'Please enter a valid API key.';
+      msg.className = 'msg error';
+      return;
+    }
+    try {
+      await setDoc(doc(db, "settings", "api_keys"), { openrouter: key }, { merge: true });
+      msg.textContent = 'API key updated successfully!';
+      msg.className = 'msg success';
+    } catch (e) {
+      msg.textContent = 'Error: ' + e.message;
+      msg.className = 'msg error';
+    }
+  });
+}
+
+// ==================== SETTINGS (original) ====================
 async function loadSettingsSection() {
   const adminEmail = auth.currentUser?.email || 'Unknown';
   $('#admin-main').innerHTML = `
