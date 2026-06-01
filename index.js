@@ -12,8 +12,8 @@ const appsData = [
   
   { id: 'a7', title: 'Result', icon: 'fa-chart-line', category: 'tools', file: 'results.html' },
   
-  { id: 'a9', title: 'Science', icon: 'fa-book', category: 'learning', file: 'book.html' },
-  { id: 'a10', title: 'Quizzes', icon: 'fa-pen-to-square', category: 'learning', file: 'quiz.html' },
+  { id: 'a9', title: 'Science', icon: 'fa-book', category: 'learning', file: 'soon.html' },
+  { id: 'a10', title: 'Quizzes', icon: 'fa-pen-to-square', category: 'learning', file: 'soon.html' },
   { id: 'a11', title: 'Games', icon: 'fa-gamepad', category: 'fun', file: 'game.html' },
   { id: 'a8', title: 'Dev', icon: 'fa-code', category: 'learning', file: 'dev.html' },
   
