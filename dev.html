@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SASS – Development Info</title>
+
+  <!-- Read saved theme immediately -->
+  <script>
+    (function(){
+      var theme = localStorage.getItem('sass_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="theme.css">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px;
+      transition: background 0.3s, color 0.3s;
+      position: relative;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--purple), #facc15);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      animation: gradientShift 5s ease infinite;
+      background-size: 200% 200%;
+    }
+    @keyframes gradientShift {
+      0%,100%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+    }
+    .header p { color: var(--text2); font-size: 1.1rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .card h2 i { font-size: 1.3rem; background: none; -webkit-text-fill-color: var(--purple); }
+
+    /* Developer info */
+    .dev-info {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .dev-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .dev-details { flex: 1; }
+    .dev-details p { margin-bottom: 6px; font-size: 0.95rem; color: var(--text2); }
+    .dev-details strong { color: var(--text); }
+
+    /* Tools grid */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .tool-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.3s;
+      backdrop-filter: blur(6px);
+    }
+    .tool-item:hover {
+      transform: translateY(-4px);
+      border-color: var(--blue);
+      box-shadow: 0 6px 20px var(--glow);
+    }
+    .tool-item i { font-size: 2rem; color: var(--blue); margin-bottom: 8px; display: block; }
+    .tool-item span { display: block; color: var(--text2); font-size: 0.8rem; margin-top: 4px; }
+
+    /* Advanced features */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .feature-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .feature-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px var(--glow);
+      border-color: var(--purple);
+    }
+    .feature-item i {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .feature-item h4 { font-size: 1.1rem; margin-bottom: 6px; color: var(--text); }
+    .feature-item p { font-size: 0.85rem; color: var(--text2); }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 50px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 22px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--timeline-line);
+      border-radius: 3px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 30px;
+      transition: all 0.3s;
+    }
+    .timeline-item:hover .pin {
+      background: var(--purple);
+      box-shadow: 0 0 0 10px var(--glow);
+    }
+    .pin {
+      position: absolute;
+      left: -36px;
+      top: 8px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: 4px solid var(--bg);
+      z-index: 2;
+      box-shadow: 0 0 0 5px var(--glow);
+      transition: all 0.3s;
+    }
+    .timeline-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.3s;
+    }
+    .timeline-card:hover {
+      box-shadow: var(--card-hover-shadow);
+      border-color: var(--blue);
+    }
+    .timeline-card h3 {
+      color: var(--blue);
+      margin-bottom: 6px;
+    }
+    .timeline-card p { color: var(--text2); font-size: 0.9rem; }
+
+    /* Nexora footer */
+    .nexora-footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 30px 20px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(14px);
+    }
+    .nexora-footer img {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px var(--glow);
+    }
+    .nexora-footer h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--blue), #facc15, var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nexora-footer p {
+      color: var(--text2);
+      margin: 8px 0;
+      font-size: 0.95rem;
+    }
+    .nexora-telegram {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0088cc;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-top: 12px;
+    }
+    .nexora-telegram:hover {
+      background: #0077b5;
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,136,204,0.4);
+    }
+    .nexora-telegram i { font-size: 1.2rem; }
+
+    .back-link {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .back-link a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link a:hover { color: var(--blue); }
+
+    @media (max-width: 600px) {
+      .timeline { padding-left: 40px; }
+      .timeline::before { left: 16px; }
+      .pin { left: -30px; width: 20px; height: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fa-solid fa-code"></i> SASS Development</h1>
+      <p>The story behind the Smart Academic School System</p>
+    </div>
+
+    <!-- Developer Card -->
+    <div class="card">
+      <h2><i class="fa-solid fa-user-gear"></i> Developer</h2>
+      <div class="dev-info">
+        <div class="dev-avatar">
+          <i class="fa-solid fa-user-astronaut"></i>
+        </div>
+        <div class="dev-details">
+          <p><strong>Name:</strong> Fikir Hatamnu</p>
+          <p><strong>Role:</strong> Full‑Stack Developer & Founder of SASS</p>
+          <p><strong>Contact:</strong> fikir@sass-school.edu.et</p>
+          <p><strong>Bio:</strong> Educator turned developer. I built SASS to replace paper‑based school management with a smart, affordable platform. Every line of code was written with love for Ethiopian schools. 🇪🇹</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Features -->
+    <div class="card">
+      <h2><i class="fa-solid fa-star"></i> Advanced Features</h2>
+      <div class="features-grid">
+        <div class="feature-item">
+          <i class="fa-solid fa-robot"></i>
+          <h4>AI Assistant</h4>
+          <p>24/7 school helper powered by OpenRouter (supports multiple free models).</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-paint-brush"></i>
+          <h4>Dark/Light Themes</h4>
+          <p>Auto‑saving theme with glassmorphism and smooth transitions.</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-file-pdf"></i>
+          <h4>PDF & Excel</h4>
+          <p>Export student cards, class lists, and marks with one click.</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-comments"></i>
+          <h4>Real‑time Chat</h4>
+          <p>Live school‑wide messaging with admin moderation.</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-chart-line"></i>
+          <h4>Ranking & Stats</h4>
+          <p>Automatic class rank, subject averages, and visual charts.</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-gamepad"></i>
+          <h4>Games</h4>
+          <p>Built‑in Tic‑Tac‑Toe, Car Dodger, and Math Challenge for students.</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-shield-halved"></i>
+          <h4>Secure API Keys</h4>
+          <p>No sensitive keys in client‑side code – stored safely in Firestore.</p>
+        </div>
+        <div class="feature-item">
+          <i class="fa-solid fa-globe"></i>
+          <h4>Multilingual</h4>
+          <p>English, Amharic, and Oromo support throughout the platform.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools & Technologies -->
+    <div class="card">
+      <h2><i class="fa-solid fa-toolbox"></i> Tools & Technologies</h2>
+      <div class="tools-grid">
+        <div class="tool-item"><i class="fa-brands fa-html5"></i> HTML5 <span>Structure</span></div>
+        <div class="tool-item"><i class="fa-brands fa-css3-alt"></i> CSS3 <span>Glassmorphism</span></div>
+        <div class="tool-item"><i class="fa-brands fa-js"></i> JavaScript <span>Interactivity</span></div>
+        <div class="tool-item"><i class="fa-solid fa-fire"></i> Firebase <span>Auth & Firestore</span></div>
+        <div class="tool-item"><i class="fa-solid fa-chart-bar"></i> Chart.js <span>Statistics</span></div>
+        <div class="tool-item"><i class="fa-solid fa-file-pdf"></i> jsPDF <span>PDF Export</span></div>
+        <div class="tool-item"><i class="fa-solid fa-file-excel"></i> SheetJS <span>Excel Import</span></div>
+        <div class="tool-item"><i class="fa-solid fa-font-awesome"></i> Font Awesome <span>Icons</span></div>
+        <div class="tool-item"><i class="fa-solid fa-robot"></i> OpenRouter <span>AI Models</span></div>
+        <div class="tool-item"><i class="fa-brands fa-github"></i> GitHub <span>Hosting & CI</span></div>
+      </div>
+    </div>
+
+    <!-- Development Progress Timeline -->
+    <div class="card">
+      <h2><i class="fa-solid fa-timeline"></i> Development Timeline</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="pin"></div>
+          <div class="timeline-card">
+            <h3>Phase 1 – Foundation 🏗️</h3>
+            <p>Concept, Firebase setup, authentication, dark/light theme, responsive layout, and the home page. Built the core structure that everything else stands on.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="pin"></div>
+          <div class="timeline-card">
+            <h3>Phase 2 – User Management 👥</h3>
+            <p>Admin, teacher, and student dashboards. Role‑based access control, class & subject management, and teacher code system.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="pin"></div>
+          <div class="timeline-card">
+            <h3>Phase 3 – Core Features ⚙️</h3>
+            <p>Permission requests, announcements, real‑time chat, result checking, class ranking, and PDF/Excel exports. The platform became truly useful.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="pin"></div>
+          <div class="timeline-card">
+            <h3>Phase 4 – AI & Smart Tools 🤖</h3>
+            <p>Integrated the AI assistant with dynamic API key storage (no hardcoded keys!), added games, and polished the glassmorphism UI.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="pin"></div>
+          <div class="timeline-card">
+            <h3>Phase 5 – Security & Hardening 🔒</h3>
+            <p>Fixed Firestore rules, secured API keys behind admin panel, danger zone reset, and bug‑fixing marathon. All files cleaned for production.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="pin"></div>
+          <div class="timeline-card">
+            <h3>Phase 6 – Launch & Beyond 🚀</h3>
+            <p>Hosted on GitHub, deployed globally, and continuously improved based on user feedback. Next: mobile app with React Native?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Powered by Nexora -->
+    <div class="nexora-footer">
+      <img src="dev.png" alt="Nexora Logo" onerror="this.style.display='none'">
+      <h3>Powered by Nexora</h3>
+      <p>Innovative digital solutions for education</p>
+      <a href="https://t.me/nexoraET" target="_blank" class="nexora-telegram">
+        <i class="fa-brands fa-telegram"></i> @nexoraET
+      </a>
+    </div>
+
+    <div class="back-link">
+      <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
