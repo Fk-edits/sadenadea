@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SASS – AI Assistant</title>
 
-  <!-- Read saved theme immediately -->
   <script>
     (function(){
       var theme = localStorage.getItem('sass_theme') || 'dark';
@@ -17,13 +16,8 @@
   <link rel="stylesheet" href="theme.css">
 
   <style>
-    :root {
-      --header-height: 56px;
-      --input-height: 68px;
-    }
-
+    :root { --header-height: 56px; --input-height: 68px; }
     * { margin:0; padding:0; box-sizing:border-box; }
-
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
@@ -31,13 +25,9 @@
       height: 100vh;
       overflow: hidden;
     }
-
-    /* ===== Fixed Header ===== */
     .chat-header {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: var(--header-height);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -52,17 +42,14 @@
       z-index: 100;
     }
     .chat-header i { color: var(--purple); }
-
-    /* ===== Scrollable Message Area ===== */
     .chat-area {
       height: 100vh;
       overflow-y: auto;
-      padding-top: var(--header-height);    /* prevent hiding behind header */
-      padding-bottom: var(--input-height);  /* prevent hiding behind input */
+      padding-top: var(--header-height);
+      padding-bottom: var(--input-height);
       display: flex;
       flex-direction: column;
     }
-
     .chat-messages {
       flex: 1;
       padding: 16px;
@@ -70,7 +57,6 @@
       flex-direction: column;
       gap: 12px;
     }
-
     .message {
       display: flex;
       flex-direction: column;
@@ -78,7 +64,6 @@
     }
     .message.user { align-self: flex-end; }
     .message.ai { align-self: flex-start; }
-
     .message-bubble {
       padding: 10px 14px;
       border-radius: 18px;
@@ -86,32 +71,25 @@
       line-height: 1.5;
       word-wrap: break-word;
     }
-
     .user .message-bubble {
       background: var(--blue);
       color: #fff;
       border-bottom-right-radius: 4px;
     }
-
     .ai .message-bubble {
       background: var(--surface);
       border: 1px solid var(--border);
       border-bottom-left-radius: 4px;
     }
-
     .message-sender {
       font-size: 0.75rem;
       color: var(--text2);
       margin-bottom: 2px;
       padding: 0 4px;
     }
-
-    /* ===== Fixed Input Area ===== */
     .chat-input {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       height: var(--input-height);
       background: var(--surface);
       border-top: 1px solid var(--border);
@@ -122,7 +100,6 @@
       -webkit-backdrop-filter: blur(12px);
       z-index: 100;
     }
-
     .chat-input textarea {
       flex: 1;
       padding: 10px 14px;
@@ -136,12 +113,10 @@
       height: 44px;
       font-family: inherit;
     }
-
     .chat-input textarea:focus {
       border-color: var(--purple);
       box-shadow: 0 0 0 3px var(--glow);
     }
-
     .chat-input button {
       width: 44px;
       height: 44px;
@@ -156,8 +131,6 @@
       transition: opacity 0.2s;
     }
     .chat-input button:hover { opacity: 0.9; }
-
-    /* Typing indicator */
     .typing-indicator {
       display: flex;
       align-items: center;
@@ -181,8 +154,6 @@
       0%, 60%, 100% { opacity: 0.4; transform: scale(0.8); }
       30% { opacity: 1; transform: scale(1.2); }
     }
-
-    /* Login prompt */
     .login-prompt {
       display: flex;
       align-items: center;
@@ -201,39 +172,37 @@
       cursor: pointer;
       font-weight: 600;
     }
-
-    @media (max-width: 500px) {
-      .message { max-width: 90%; }
-    }
+    @media (max-width: 500px) { .message { max-width: 90%; } }
   </style>
 </head>
 <body>
-  <!-- Fixed header -->
   <div class="chat-header">
     <i class="fa-solid fa-robot"></i>
     <span>SASS AI</span>
   </div>
 
-  <!-- Scrollable chat area (messages will be injected here) -->
   <main class="chat-area" id="chat-area">
     <div id="auth-check"></div>
   </main>
 
-  <!-- Fixed input (outside scroll area) -->
   <div class="chat-input" id="chat-input-container" style="display:none;">
     <textarea id="message-input" placeholder="Ask me anything about SASS…" rows="1" autocomplete="off"></textarea>
     <button id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
   </div>
 
   <script type="module">
-    import { auth, db, OPENROUTER_API_KEY } from './firebase-config.js';
+    import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import { collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import {
+      collection, addDoc, query, where, orderBy, getDocs, serverTimestamp,
+      getDoc, doc
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
     const $ = id => document.getElementById(id);
     const authCheckContainer = $('auth-check');
     const chatInputContainer = $('chat-input-container');
     let currentUser = null;
+    let cachedApiKey = null;
 
     const SCHOOL_CONTEXT = `
 You are the official AI assistant for SASS – Smart Academic School System, built by the school's developer to provide instant help.
@@ -252,12 +221,24 @@ Key details about SASS:
 You are here to answer any questions about the school, the platform, or how to use it.
     `.trim();
 
+    // ==================== FETCH API KEY ====================
+    async function getOpenRouterKey() {
+      if (cachedApiKey) return cachedApiKey;
+      try {
+        const snap = await getDoc(doc(db, "settings", "api_keys"));
+        if (snap.exists()) {
+          cachedApiKey = snap.data().openrouter || null;
+        }
+      } catch (e) {
+        console.warn('Could not fetch API key', e);
+      }
+      return cachedApiKey;
+    }
+
     // ==================== CHAT UI ====================
     function createChatInterface() {
-      // Show the fixed input
       chatInputContainer.style.display = 'flex';
 
-      // Build the scrollable messages container
       authCheckContainer.innerHTML = `
         <div class="chat-messages" id="chat-messages">
           <div class="message ai">
@@ -279,7 +260,6 @@ You are here to answer any questions about the school, the platform, or how to u
           <div class="message-bubble">${escapeHTML(text)}</div>
         `;
         messagesContainer.appendChild(div);
-        // Scroll the outer chat-area, not messagesContainer (which has no overflow)
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
       }
 
@@ -333,15 +313,25 @@ You are here to answer any questions about the school, the platform, or how to u
         } catch (e) { console.warn('Could not load history', e); }
       }
 
-      // ==================== AI CALL ====================
+      // Check API key and warn if missing
+      getOpenRouterKey().then(key => {
+        if (!key) {
+          addMessage("The AI assistant is not configured yet. Please ask an admin to set the API key.", false);
+        }
+      });
+
+      // ==================== AI CALL (dynamic key) ====================
       async function tryModel(model, userMessage) {
+        const apiKey = await getOpenRouterKey();
+        if (!apiKey) return null;
+
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 25000);
         try {
           const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+              'Authorization': `Bearer ${apiKey}`,
               'Content-Type': 'application/json',
               'HTTP-Referer': window.location.origin,
               'X-Title': 'SASS AI'
