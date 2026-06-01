@@ -27,6 +27,7 @@
   --hero-gradient: linear-gradient(145deg, #1C1C20 0%, #193C40 35%, #1C1C20 100%);
   --blur-bg: rgba(28, 28, 32, 0.85);
   --input-bg: #1C1C20;
+  --red: #ef4444;    /* in :root (dark) */
   
   --button-pill: 999px;
   --timeline-line: #60708A;           /* slate line */
@@ -79,4 +80,6 @@
   --gold: #60708A;
   --gradient-1: #193C40;
   --gradient-2: #60708A;
+  --red: #dc2626;    /* in [data-theme="light"] */
+
 }
