@@ -77,11 +77,7 @@
       cursor: pointer;
       transition: 0.2s;
     }
-    .tab.active {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-    }
+    .tab.active { background: var(--blue); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,0.4); }
 
     .game-container {
       width: 100%;
@@ -95,7 +91,7 @@
     }
     .hidden { display: none !important; }
 
-    /* Tic‑Tac‑Toe */
+    /* Tic‑Tac‑Toe (unchanged visuals, but bot improved) */
     .board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -104,8 +100,7 @@
       margin: 0 auto 16px;
     }
     .cell {
-      width: 60px;
-      height: 60px;
+      width: 60px; height: 60px;
       background: var(--bg);
       border: 2px solid var(--border);
       border-radius: 8px;
@@ -123,43 +118,80 @@
     .cell.O { color: var(--purple); }
     .turn-indicator { margin-bottom: 12px; font-weight: 600; }
 
-    /* Car Game */
+    /* ---- CAR GAME (NEW) ---- */
     .road {
       position: relative;
-      width: 300px;
+      width: 100%;
       height: 400px;
-      background: #1e293b;
+      background: #1a1a2e;
       margin: 0 auto 16px;
       border: 2px solid var(--border);
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+    }
+    .road::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      width: 2px;
+      height: 100%;
+      background: rgba(255,255,255,0.1);
+      transform: translateX(-50%);
     }
     .car {
       position: absolute;
+      bottom: 30px;
       width: 50px;
-      height: 60px;
-      font-size: 3rem;           /* emoji car */
-      bottom: 20px;
-      left: 125px;
-      transition: left 0.05s;
-      text-align: center;
-      line-height: 60px;
+      height: 70px;
+      background: linear-gradient(145deg, var(--blue), var(--purple));
+      border-radius: 12px 12px 4px 4px;
+      box-shadow: 0 0 20px var(--glow);
+      transition: left 0.08s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #fff;
+      font-weight: 700;
+    }
+    .car::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      width: 40px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 4px 4px 0 0;
     }
     .obstacle {
       position: absolute;
-      width: 50px;
-      height: 60px;
-      font-size: 2.5rem;         /* emoji obstacle */
-      text-align: center;
-      line-height: 60px;
-      top: -60px;
-      animation: fall linear infinite;
+      width: 40px;
+      height: 70px;
+      background: var(--red);
+      border-radius: 8px;
+      animation: fall linear forwards;
     }
     @keyframes fall {
-      from { top: -60px; }
+      from { top: -70px; }
       to { top: 400px; }
     }
-    .score-board { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .lives-bar {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .lives-bar i { color: var(--red); font-size: 1.2rem; }
+    .car-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
     .car-controls {
       display: flex;
       justify-content: center;
@@ -170,15 +202,30 @@
       background: var(--blue);
       color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 12px 24px;
       font-weight: 600;
       cursor: pointer;
+      transition: 0.2s;
     }
     .car-btn:hover { opacity: 0.9; }
     .reset-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); margin-top: 12px; }
 
-    /* Math Game */
+    /* Math Game – difficulty selector */
+    .difficulty-selector {
+      margin: 16px 0;
+    }
+    .diff-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      margin: 4px;
+      font-weight: 500;
+    }
+    .diff-btn.active { background: var(--blue); color: #fff; }
     .math-question { font-size: 2rem; margin: 16px 0; font-weight: 700; }
     .math-input { width: 120px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 1.2rem; text-align: center; }
     .timer { font-size: 1.5rem; font-weight: 600; color: var(--blue); }
@@ -203,21 +250,24 @@
 
   <!-- Tic‑Tac‑Toe -->
   <div class="game-container" id="game-tictactoe">
-    <h3>Tic‑Tac‑Toe (You vs Bot)</h3>
+    <h3>Tic‑Tac‑Toe (Unbeatable AI)</h3>
     <p class="turn-indicator" id="tictactoe-turn">Your turn (X)</p>
     <div class="board" id="board"></div>
     <button class="reset-btn" id="tictactoe-reset">New Game</button>
   </div>
 
-  <!-- Car Game -->
+  <!-- Car Dodger -->
   <div class="game-container hidden" id="game-car">
-    <h3>Car Dodger 🚗</h3>
-    <div class="score-board">
+    <h3>Car Dodger</h3>
+    <div class="car-hud">
       <span>Score: <strong id="car-score">0</strong></span>
       <span>Best: <strong id="car-best">0</strong></span>
     </div>
+    <div class="lives-bar" id="lives-bar">
+      <i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i>
+    </div>
     <div class="road" id="road">
-      <div class="car" id="car">🚗</div>
+      <div class="car" id="car">SASS</div>
     </div>
     <div class="car-controls">
       <button class="car-btn" id="car-left"><i class="fa-solid fa-arrow-left"></i></button>
@@ -225,11 +275,17 @@
     </div>
     <button class="car-btn" id="car-start" style="margin-top:8px;">Start</button>
     <button class="reset-btn hidden" id="car-reset">Try Again</button>
+    <div id="car-gameover-msg" class="hidden" style="margin-top:12px; font-weight:600;"></div>
   </div>
 
-  <!-- Math Game -->
+  <!-- Math Challenge -->
   <div class="game-container hidden" id="game-math">
     <h3>Math Challenge</h3>
+    <div class="difficulty-selector" id="diff-selector">
+      <button class="diff-btn active" data-diff="easy">Easy</button>
+      <button class="diff-btn" data-diff="medium">Medium</button>
+      <button class="diff-btn" data-diff="hard">Hard</button>
+    </div>
     <p>Time left: <span class="timer" id="math-timer">30</span>s | Question: <span id="math-qnum">1</span>/10</p>
     <div class="math-question" id="math-question">7 + 3</div>
     <input type="number" class="math-input" id="math-answer" placeholder="?" autocomplete="off">
@@ -258,16 +314,15 @@
         });
       });
 
-      // ==================== TIC‑TAC‑TOE WITH BOT ====================
+      // ==================== TIC‑TAC‑TOE (Minimax bot) ====================
       (function() {
         const boardEl = document.getElementById('board');
         const turnEl = document.getElementById('tictactoe-turn');
         const resetBtn = document.getElementById('tictactoe-reset');
         let board = ['','','','','','','','',''];
-        let playerSymbol = 'X';
-        let botSymbol = 'O';
+        const player = 'X', bot = 'O';
         let gameActive = true;
-        let botTurn = false; // player always starts
+        let botTurn = false;
 
         function renderBoard() {
           boardEl.innerHTML = '';
@@ -276,29 +331,63 @@
             cell.className = 'cell' + (val ? ` ${val}` : '');
             cell.textContent = val;
             cell.addEventListener('click', () => {
-              if (gameActive && !botTurn && board[idx] === '') {
-                makeMove(idx, playerSymbol);
-              }
+              if (gameActive && !botTurn && board[idx] === '') makeMove(idx, player);
             });
             boardEl.appendChild(cell);
           });
-          turnEl.textContent = gameActive ? (botTurn ? "Bot's turn (O)" : "Your turn (X)") : '';
+          if (gameActive) turnEl.textContent = botTurn ? "Bot's turn (O)" : "Your turn (X)";
         }
 
         function checkWin(boardArr) {
-          const wins = [
-            [0,1,2],[3,4,5],[6,7,8],
-            [0,3,6],[1,4,7],[2,5,8],
-            [0,4,8],[2,4,6]
-          ];
+          const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
           for (let w of wins) {
             const [a,b,c] = w;
-            if (boardArr[a] && boardArr[a] === boardArr[b] && boardArr[a] === boardArr[c]) {
-              return boardArr[a];
+            if (boardArr[a] && boardArr[a] === boardArr[b] && boardArr[a] === boardArr[c]) return boardArr[a];
+          }
+          return boardArr.includes('') ? null : 'draw';
+        }
+
+        function minimax(newBoard, isMaximizing) {
+          const winner = checkWin(newBoard);
+          if (winner === bot) return 10;
+          if (winner === player) return -10;
+          if (winner === 'draw') return 0;
+
+          if (isMaximizing) {
+            let best = -Infinity;
+            for (let i = 0; i < 9; i++) {
+              if (newBoard[i] === '') {
+                newBoard[i] = bot;
+                best = Math.max(best, minimax(newBoard, false));
+                newBoard[i] = '';
+              }
+            }
+            return best;
+          } else {
+            let best = Infinity;
+            for (let i = 0; i < 9; i++) {
+              if (newBoard[i] === '') {
+                newBoard[i] = player;
+                best = Math.min(best, minimax(newBoard, true));
+                newBoard[i] = '';
+              }
+            }
+            return best;
+          }
+        }
+
+        function botMove() {
+          if (!gameActive || !botTurn) return;
+          let bestScore = -Infinity, bestIdx = -1;
+          for (let i = 0; i < 9; i++) {
+            if (board[i] === '') {
+              board[i] = bot;
+              let score = minimax(board, false);
+              board[i] = '';
+              if (score > bestScore) { bestScore = score; bestIdx = i; }
             }
           }
-          if (!boardArr.includes('')) return 'draw';
-          return null;
+          if (bestIdx !== -1) makeMove(bestIdx, bot);
         }
 
         function makeMove(idx, symbol) {
@@ -308,41 +397,14 @@
           if (winner === 'draw') {
             turnEl.textContent = "It's a draw!";
             gameActive = false;
-            return;
           } else if (winner) {
-            turnEl.textContent = (winner === playerSymbol ? "You win!" : "Bot wins!");
+            turnEl.textContent = (winner === player ? "You win!" : "Bot wins!");
             gameActive = false;
-            return;
+          } else {
+            botTurn = !botTurn;
+            turnEl.textContent = botTurn ? "Bot's turn (O)" : "Your turn (X)";
+            if (botTurn && gameActive) setTimeout(botMove, 300);
           }
-          // Switch turns
-          botTurn = !botTurn;
-          turnEl.textContent = botTurn ? "Bot's turn (O)" : "Your turn (X)";
-          if (botTurn && gameActive) {
-            setTimeout(botMove, 400);
-          }
-        }
-
-        function botMove() {
-          if (!gameActive || !botTurn) return;
-          // Simple bot: prioritize winning move, block opponent, then random
-          const empty = board.map((v,i) => v === '' ? i : null).filter(i => i !== null);
-          // 1. Win
-          for (let i of empty) {
-            const testBoard = [...board];
-            testBoard[i] = botSymbol;
-            if (checkWin(testBoard) === botSymbol) { makeMove(i, botSymbol); return; }
-          }
-          // 2. Block
-          for (let i of empty) {
-            const testBoard = [...board];
-            testBoard[i] = playerSymbol;
-            if (checkWin(testBoard) === playerSymbol) { makeMove(i, botSymbol); return; }
-          }
-          // 3. Take center if free
-          if (empty.includes(4)) { makeMove(4, botSymbol); return; }
-          // 4. Random
-          const randomIdx = empty[Math.floor(Math.random() * empty.length)];
-          makeMove(randomIdx, botSymbol);
         }
 
         resetBtn.addEventListener('click', () => {
@@ -355,7 +417,7 @@
         renderBoard();
       })();
 
-      // ==================== CAR DODGER (on-screen buttons) ====================
+      // ==================== CAR DODGER (REDESIGNED) ====================
       (function() {
         const road = document.getElementById('road');
         const car = document.getElementById('car');
@@ -365,45 +427,82 @@
         const resetBtn = document.getElementById('car-reset');
         const leftBtn = document.getElementById('car-left');
         const rightBtn = document.getElementById('car-right');
+        const livesBar = document.getElementById('lives-bar');
+        const gameoverMsg = document.getElementById('car-gameover-msg');
+
         let score = 0;
         let best = localStorage.getItem('car_best') || 0;
         let gameRunning = false;
         let obstacles = [];
-        let carX = 125; // middle of 300px road minus half car width (50px) => 125
+        let carX = 0; // will be set as percentage
         let frameId;
         let obstacleInterval;
+        let lives = 3;
+        let difficulty = 1;
+        const CAR_WIDTH = 50;
+        const ROAD_WIDTH = 300; // will be adapted by road width
         bestEl.textContent = best;
+
+        function updateRoadWidth() {
+          // road width is flexible, we use the actual client width
+          return road.clientWidth;
+        }
 
         function reset() {
           score = 0;
           scoreEl.textContent = '0';
           obstacles.forEach(o => o.remove());
           obstacles = [];
-          carX = 125;
-          car.style.left = carX + 'px';
+          lives = 3;
+          difficulty = 1;
+          updateLivesDisplay();
           gameRunning = false;
           clearInterval(obstacleInterval);
           cancelAnimationFrame(frameId);
           startBtn.classList.remove('hidden');
           resetBtn.classList.add('hidden');
+          gameoverMsg.classList.add('hidden');
+          const roadWidth = updateRoadWidth();
+          carX = (roadWidth - CAR_WIDTH) / 2;
+          car.style.left = carX + 'px';
+        }
+
+        function updateLivesDisplay() {
+          livesBar.innerHTML = '';
+          for (let i = 0; i < 3; i++) {
+            const heart = document.createElement('i');
+            heart.className = 'fa-solid fa-heart';
+            if (i >= lives) heart.style.opacity = '0.2';
+            livesBar.appendChild(heart);
+          }
         }
 
         function stopCarGame() { if (gameRunning) reset(); }
 
         function createObstacle() {
           if (!gameRunning) return;
+          const roadWidth = updateRoadWidth();
           const obs = document.createElement('div');
           obs.className = 'obstacle';
-          obs.innerHTML = '🪨';   // rock emoji
-          const left = Math.floor(Math.random() * 250); // road 300, obstacle 50
-          obs.style.left = left + 'px';
-          obs.style.animationDuration = (2 + Math.random() * 2) + 's';
+          // random size variation
+          const w = 30 + Math.random() * 30;
+          const h = 60 + Math.random() * 30;
+          obs.style.width = w + 'px';
+          obs.style.height = h + 'px';
+          obs.style.left = Math.random() * (roadWidth - w) + 'px';
+          obs.style.background = `hsl(${Math.random() * 360}, 80%, 50%)`;
+          obs.style.animationDuration = (1.8 - difficulty * 0.1) + 's'; // speed up with difficulty
           obs.addEventListener('animationend', () => {
             if (obs.parentNode) obs.remove();
             obstacles = obstacles.filter(o => o !== obs);
             if (gameRunning) {
               score++;
               scoreEl.textContent = score;
+              if (score % 5 === 0 && difficulty < 8) {
+                difficulty++;
+                clearInterval(obstacleInterval);
+                obstacleInterval = setInterval(createObstacle, 1500 - difficulty * 100);
+              }
             }
           });
           road.appendChild(obs);
@@ -420,8 +519,15 @@
               carRect.top < obsRect.bottom &&
               carRect.bottom > obsRect.top
             ) {
-              gameOver();
-              break;
+              // collision
+              obs.remove();
+              obstacles = obstacles.filter(o => o !== obs);
+              lives--;
+              updateLivesDisplay();
+              if (lives <= 0) {
+                gameOver();
+                return;
+              }
             }
           }
         }
@@ -437,6 +543,8 @@
           }
           startBtn.classList.add('hidden');
           resetBtn.classList.remove('hidden');
+          gameoverMsg.classList.remove('hidden');
+          gameoverMsg.innerHTML = `💥 Game Over! Final Score: <strong>${score}</strong>`;
         }
 
         function gameLoop() {
@@ -450,6 +558,7 @@
           gameRunning = true;
           startBtn.classList.add('hidden');
           resetBtn.classList.add('hidden');
+          gameoverMsg.classList.add('hidden');
           obstacleInterval = setInterval(createObstacle, 1500);
           gameLoop();
         }
@@ -457,26 +566,33 @@
         startBtn.addEventListener('click', startGame);
         resetBtn.addEventListener('click', startGame);
 
-        // On-screen buttons
-        leftBtn.addEventListener('mousedown', () => { moveCar(-20); });
-        rightBtn.addEventListener('mousedown', () => { moveCar(20); });
-        leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveCar(-20); });
-        rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveCar(20); });
-
         function moveCar(dx) {
           if (!gameRunning) return;
-          carX = Math.max(0, Math.min(250, carX + dx));
+          const roadWidth = updateRoadWidth();
+          carX = Math.max(0, Math.min(roadWidth - CAR_WIDTH, carX + dx));
           car.style.left = carX + 'px';
         }
 
+        leftBtn.addEventListener('mousedown', () => moveCar(-30));
+        rightBtn.addEventListener('mousedown', () => moveCar(30));
+        leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveCar(-30); });
+        rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveCar(30); });
+
         document.addEventListener('keydown', (e) => {
           if (!gameRunning) return;
-          if (e.key === 'ArrowLeft') moveCar(-20);
-          else if (e.key === 'ArrowRight') moveCar(20);
+          if (e.key === 'ArrowLeft') moveCar(-30);
+          else if (e.key === 'ArrowRight') moveCar(30);
+        });
+
+        // Set initial position after styles load
+        window.addEventListener('load', () => {
+          const roadWidth = updateRoadWidth();
+          carX = (roadWidth - CAR_WIDTH) / 2;
+          car.style.left = carX + 'px';
         });
       })();
 
-      // ==================== MATH CHALLENGE (10 questions, 30 sec) ====================
+      // ==================== MATH CHALLENGE (with difficulty) ====================
       (function() {
         const questionEl = document.getElementById('math-question');
         const answerInput = document.getElementById('math-answer');
@@ -485,28 +601,39 @@
         const scoreEl = document.getElementById('math-score-display');
         const qnumEl = document.getElementById('math-qnum');
         const resetBtn = document.getElementById('math-reset');
+        const diffButtons = document.querySelectorAll('.diff-btn');
+
         let currentAnswer;
         let score = 0;
         let questionsDone = 0;
-        const totalQuestions = 10;
+        let totalQuestions = 10;
         let timeLeft = 30;
         let timerInterval;
         let gameActive = false;
+        let difficulty = 'easy'; // default
 
-        function generateQuestion() {
-          const ops = ['+', '-', '×'];
-          const op = ops[Math.floor(Math.random() * 3)];
-          let a, b;
-          if (op === '+') { a = rand(5, 50); b = rand(5, 50); }
-          else if (op === '-') { a = rand(10, 50); b = rand(1, a); }
-          else { a = rand(2, 12); b = rand(2, 12); }
-          questionEl.textContent = `${a} ${op} ${b} = ?`;
-          if (op === '+') currentAnswer = a + b;
-          else if (op === '-') currentAnswer = a - b;
-          else currentAnswer = a * b;
-        }
+        const settings = {
+          easy: { time: 45, ops: ['+','-'], maxA: 20, maxB: 20, min: 1 },
+          medium: { time: 35, ops: ['+','-','×'], maxA: 15, maxB: 15, min: 2 },
+          hard: { time: 25, ops: ['+','-','×','÷'], maxA: 100, maxB: 20, min: 3 }
+        };
 
         function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+        function generateQuestion() {
+          const s = settings[difficulty];
+          const op = s.ops[Math.floor(Math.random() * s.ops.length)];
+          let a, b;
+          if (op === '+') { a = rand(s.min, s.maxA); b = rand(s.min, s.maxB); currentAnswer = a + b; }
+          else if (op === '-') { a = rand(s.min + 1, s.maxA); b = rand(s.min, a); currentAnswer = a - b; }
+          else if (op === '×') { a = rand(s.min, s.maxA); b = rand(s.min, s.maxB); currentAnswer = a * b; }
+          else if (op === '÷') {
+            b = rand(s.min, s.maxB);
+            a = b * rand(1, Math.floor(s.maxA / b));
+            currentAnswer = a / b;
+          }
+          questionEl.textContent = `${a} ${op} ${b} = ?`;
+        }
 
         function endGame() {
           gameActive = false;
@@ -518,7 +645,8 @@
 
         function resetMath() {
           clearInterval(timerInterval);
-          timeLeft = 30;
+          const s = settings[difficulty];
+          timeLeft = s.time;
           timerEl.textContent = timeLeft;
           score = 0;
           questionsDone = 0;
@@ -532,19 +660,25 @@
           timerInterval = setInterval(() => {
             timeLeft--;
             timerEl.textContent = timeLeft;
-            if (timeLeft <= 0) {
-              endGame();
-            }
+            if (timeLeft <= 0) endGame();
           }, 1000);
         }
 
+        // Difficulty buttons
+        diffButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            diffButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            difficulty = btn.dataset.diff;
+            resetMath();
+          });
+        });
+
         submitBtn.addEventListener('click', () => {
           if (!gameActive) return;
-          const userAnswer = parseInt(answerInput.value);
+          const userAnswer = parseFloat(answerInput.value);
           if (isNaN(userAnswer)) return;
-          if (userAnswer === currentAnswer) {
-            score++;
-          }
+          if (Math.abs(userAnswer - currentAnswer) < 0.001) score++;
           questionsDone++;
           if (questionsDone >= totalQuestions) {
             scoreEl.textContent = 'Score: ' + score;
