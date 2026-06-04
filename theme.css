@@ -1,47 +1,46 @@
 :root {
-  /* ===== Dark Mode: Deep Teal & Slate ===== */
-  --bg: #1C1C20;                     /* darkest near-black */
-  --bg2: #193C40;                    /* deep teal for depth */
-  --surface: #193C40;                /* cards, modals */
+  /* ===== Dark Mode: Black & White ===== */
+  --bg: #000000;                     /* pure black */
+  --bg2: #0a0a0a;
+  --surface: #111111;                /* cards, modals */
   
-  --text: #F3F4F6;                   /* light grey text */
-  --text2: #93A3BC;                  /* muted blue-grey secondary */
+  --text: #ffffff;                   /* white */
+  --text2: #a0a0a0;                  /* light grey secondary */
   
-  --border: rgba(96, 112, 138, 0.15); /* slate border */
-  --card-bg: rgba(25, 60, 64, 0.8);   /* teal frosted glass */
+  --border: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(20, 20, 20, 0.8);  /* dark frosted glass */
   
-  /* Brand – slate & teal spectrum */
-  --primary: #60708A;                /* slate blue primary */
-  --primary-hover: #93A3BC;          /* lighter slate for hover */
-  --secondary: #193C40;              /* deep teal accent */
-  --secondary-hover: #1C1C20;        /* darken teal */
-  --accent: #93A3BC;                 /* muted blue for badges/icons */
-  --accent-hover: #60708A;           /* revert to slate */
+  /* Brand – monochrome grey spectrum */
+  --primary: #e0e0e0;                /* off‑white for interactive elements */
+  --primary-hover: #ffffff;
+  --secondary: #333333;              /* dark grey accent */
+  --secondary-hover: #444444;
+  --accent: #888888;                 /* mid grey for badges/icons */
+  --accent-hover: #aaaaaa;
   
-  --glow: rgba(96, 112, 138, 0.18);  /* slate glow */
-  --shadow: 0 8px 32px rgba(0, 0, 0, 0.85);
-  --card-hover-shadow: 0 16px 40px rgba(96, 112, 138, 0.2);
+  --glow: rgba(255, 255, 255, 0.06);  /* very subtle white glow */
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
+  --card-hover-shadow: 0 16px 40px rgba(255, 255, 255, 0.05);
   
-  --glass: rgba(28, 28, 32, 0.75);   /* dark bg glass */
-  --nav-bg: rgba(28, 28, 32, 0.92);
-  --hero-gradient: linear-gradient(145deg, #1C1C20 0%, #193C40 35%, #1C1C20 100%);
-  --blur-bg: rgba(28, 28, 32, 0.85);
-  --input-bg: #1C1C20;
-  --red: #ef4444;    /* in :root (dark) */
+  --glass: rgba(10, 10, 10, 0.8);
+  --nav-bg: rgba(0, 0, 0, 0.92);
+  --hero-gradient: linear-gradient(145deg, #000000 0%, #0a0a0a 35%, #000000 100%);
+  --blur-bg: rgba(0, 0, 0, 0.85);
+  --input-bg: #1a1a1a;
+  --red: #ef4444;                    /* keep for errors / delete buttons */
   
   --button-pill: 999px;
-  --timeline-line: #60708A;           /* slate line */
+  --timeline-line: #333333;
   
-  /* Keep old aliases, remapped */
-  --blue: #60708A;
-  --purple: #193C40;
-  --green: #193C40;
-  --pink: #93A3BC;
-  --gold: #93A3BC;
-  --gradient-1: #60708A;
-  --gradient-2: #193C40;
+  /* Aliases remapped to greyscale */
+  --blue: #e0e0e0;
+  --purple: #888888;
+  --green: #666666;
+  --pink: #999999;
+  --gold: #facc15;                 /* tiny warm accent – comment out if you want pure b/w */
+  --gradient-1: #e0e0e0;
+  --gradient-2: #888888;
 }
-
 [data-theme="light"] {
   /* ===== Light Mode: Slate & Deep Teal 🍃 ===== */
   --bg: #F3F4F6;                     /* light grey background */
