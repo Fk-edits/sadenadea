@@ -203,6 +203,56 @@
     }
     .timeline-card p { color: var(--text2); font-size: 0.9rem; }
 
+    /* ========== ACKNOWLEDGEMENTS (QUOTE STYLE) ========== */
+    .acknowledgement-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      border-radius: 0 20px 20px 0;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      font-style: italic;
+      position: relative;
+    }
+    .acknowledgement-card::before {
+      content: '\201C';
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      font-size: 5rem;
+      color: var(--gold);
+      opacity: 0.15;
+      font-family: serif;
+      line-height: 1;
+    }
+    .acknowledgement-card h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--gold), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-style: normal;
+    }
+    .acknowledgement-card h2 i { font-size: 1.3rem; background: none; -webkit-text-fill-color: var(--gold); }
+    .acknowledgement-card p {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--text2);
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .acknowledgement-card p strong {
+      color: var(--text);
+      font-style: normal;
+    }
+
     /* Nexora footer */
     .nexora-footer {
       margin-top: 40px;
@@ -409,6 +459,15 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ========== ACKNOWLEDGEMENTS (QUOTE STYLE) ========== -->
+    <div class="acknowledgement-card">
+      <h2><i class="fa-solid fa-heart"></i> Acknowledgements</h2>
+      <p>“First and foremost, I thank <strong>GOD</strong> for the wisdom, strength, and guidance throughout this journey. Without His grace, nothing would be possible.</p>
+      <p>I am deeply grateful to <strong>my teacher</strong> who entrusted us with this project and inspired us to push beyond our limits. Your belief in us made SASS a reality.</p>
+      <p>To <strong>my family</strong> – thank you for your endless patience, encouragement, and love. You are my foundation.</p>
+      <p>And a special shout‑out to <strong>Speed</strong> – your help, motivation, and late‑night debug sessions kept this project alive. You’re a legend.”</p>
     </div>
 
     <!-- Powered by Nexora -->
