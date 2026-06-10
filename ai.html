@@ -178,7 +178,7 @@
 <body>
   <div class="chat-header">
     <i class="fa-solid fa-robot"></i>
-    <span>SASS AI</span>
+    <span>Seden AI</span>
   </div>
 
   <main class="chat-area" id="chat-area">
@@ -186,7 +186,7 @@
   </main>
 
   <div class="chat-input" id="chat-input-container" style="display:none;">
-    <textarea id="message-input" placeholder="Ask me anything about SASS…" rows="1" autocomplete="off"></textarea>
+    <textarea id="message-input" placeholder="Ask me anything about Seden Adea…" rows="1" autocomplete="off"></textarea>
     <button id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
   </div>
 
@@ -204,21 +204,43 @@
     let currentUser = null;
     let cachedApiKey = null;
 
+    // ========== NEW SCHOOL CONTEXT (Seden Adea) ==========
     const SCHOOL_CONTEXT = `
-You are the official AI assistant for SASS – Smart Academic School System, built by the school's developer to provide instant help.
-The platform was created by a passionate developer who wanted to modernize school management. SASS is a complete digital solution for international schools.
+You are Seden AI, the official intelligent assistant of Seden Adea Secondary School.
+You were created by Fikir Habtamu, a student of Seden Adea Secondary School, to help students, teachers, parents, and visitors.
 
-Key details about SASS:
-- Founded: 2005 by Dr. Fikir Hatamnu
-- Location: Bole Road, Addis Ababa, Ethiopia
-- Contact: +251 11 123 4567 | info@sass-school.edu.et
-- Hours: Mon–Fri, 8:00 AM – 4:00 PM
-- Grades: 9–12 (sections A–E)
-- Campus: 15 acres, modern facilities
-- Subjects: English, Math, Physics, Chemistry, Biology, IT, and more
-- Platform features: class management, student records, teacher mark entry, student result check, permission requests, real‑time chat, announcements, and this AI assistant.
+About Seden Adea Secondary School:
+- The school is dedicated to providing quality education, discipline, and opportunities for students to achieve their goals.
+- Mission: Prepare students for higher education, future careers, and responsible citizenship through modern learning methods and strong educational values.
 
-You are here to answer any questions about the school, the platform, or how to use it.
+About your creator:
+- Fikir Habtamu is a student developer passionate about technology, web development, and solving real-world problems through software.
+- He built this entire school platform to improve communication, access to information, and digital services for the school community.
+
+About the platform you are part of (SASS – Smart Academic School System):
+- It's a complete digital school platform built from scratch.
+- Features include:
+  * Admin dashboard to manage teachers, students, classes, subjects, announcements, permissions, and API keys.
+  * Teacher dashboard to enter marks, view class details, and manage profile.
+  * Student result checking with class rank.
+  * Real-time school-wide chat with admin moderation.
+  * Permission request system (students can submit requests with sick card/verification images).
+  * AI assistant (that's you!).
+  * Games (Tic-Tac-Toe with unbeatable AI, Car Dodger with lives and difficulty levels, Math Challenge with timer and difficulty levels).
+  * Dark/light theme with glassmorphism design.
+  * Secure API key storage in Firestore (no hardcoded keys).
+  * PDF and Excel export for student cards and class lists.
+  * Multilingual support (English, Amharic, Oromo).
+  * Student registration with payment verification (coming soon).
+  * Cloudflare R2 for file storage (coming soon).
+
+Your purpose:
+- Make information available anytime, anywhere.
+- Help students with school information, academic guidance, resources, rules, announcements, exams, assignments, and website navigation.
+- Assist teachers and parents as well.
+- Keep the Seden Adea community connected and informed.
+
+Always be friendly, helpful, and professional. If someone asks about the developer, proudly say you were created by Fikir Habtamu, a student of the school.
     `.trim();
 
     // ==================== FETCH API KEY ====================
@@ -242,8 +264,8 @@ You are here to answer any questions about the school, the platform, or how to u
       authCheckContainer.innerHTML = `
         <div class="chat-messages" id="chat-messages">
           <div class="message ai">
-            <div class="message-sender">SASS AI</div>
-            <div class="message-bubble">Hello! I'm your school AI assistant. How can I help you today?</div>
+            <div class="message-sender">Seden AI</div>
+            <div class="message-bubble">Hello! I'm Seden AI, the intelligent assistant of Seden Adea Secondary School. How can I help you today? 👋</div>
           </div>
         </div>
       `;
@@ -256,7 +278,7 @@ You are here to answer any questions about the school, the platform, or how to u
         const div = document.createElement('div');
         div.className = `message ${isUser ? 'user' : 'ai'}`;
         div.innerHTML = `
-          ${!isUser ? '<div class="message-sender">SASS AI</div>' : '<div class="message-sender">You</div>'}
+          ${!isUser ? '<div class="message-sender">Seden AI</div>' : '<div class="message-sender">You</div>'}
           <div class="message-bubble">${escapeHTML(text)}</div>
         `;
         messagesContainer.appendChild(div);
@@ -267,7 +289,7 @@ You are here to answer any questions about the school, the platform, or how to u
         const div = document.createElement('div');
         div.className = 'message ai';
         div.innerHTML = `
-          <div class="message-sender">SASS AI</div>
+          <div class="message-sender">Seden AI</div>
           <div class="typing-indicator">
             <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
           </div>
@@ -334,7 +356,7 @@ You are here to answer any questions about the school, the platform, or how to u
               'Authorization': `Bearer ${apiKey}`,
               'Content-Type': 'application/json',
               'HTTP-Referer': window.location.origin,
-              'X-Title': 'SASS AI'
+              'X-Title': 'Seden AI'
             },
             body: JSON.stringify({
               model,
@@ -357,10 +379,13 @@ You are here to answer any questions about the school, the platform, or how to u
         }
       }
 
+      // ========== UPDATED FASTER MODELS ==========
       async function getAIResponse(msg) {
         const models = [
-  'openai/gpt-oss-120b:free',
-];
+          'google/gemini-2.0-flash-001',           // very fast, reliable
+          'meta-llama/llama-4-maverick:free',      // fast free Llama 4
+          'meta-llama/llama-4-scout:free'          // small but very fast
+        ];
         for (const model of models) {
           const reply = await tryModel(model, msg);
           if (reply) return reply;
