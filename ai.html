@@ -359,9 +359,7 @@ You are here to answer any questions about the school, the platform, or how to u
 
       async function getAIResponse(msg) {
         const models = [
-  'google/gemini-2.0-flash-001',          // very fast, reliable
-  'meta-llama/llama-4-maverick:free',     // fast free Llama 4
-  'meta-llama/llama-4-scout:free'         // small but very fast
+  'openai/gpt-oss-120b:free',
 ];
         for (const model of models) {
           const reply = await tryModel(model, msg);
