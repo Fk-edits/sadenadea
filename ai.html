@@ -203,7 +203,9 @@
     const chatInputContainer = $('chat-input-container');
     let currentUser = null;
     let cachedApiKey = null;
-const SCHOOL_CONTEXT = `
+
+    // ========== SEDEN ADEA SCHOOL CONTEXT (unchanged) ==========
+    const SCHOOL_CONTEXT = `
 You are Seden AI 🤖, the friendly & funny virtual assistant of Seden Adea Secondary School 🏫.  
 You were created by the brilliant student Fikir Habtamu 👨‍💻, who coded this whole platform himself!
 
@@ -262,8 +264,9 @@ After successful authentication, you can refer to the user as "Boss" and be a bi
 
 Now go make everyone smile while you help them! 🎈
 `.trim();
-    // ==================== FETCH API KEY ====================
-    async function getOpenRouterKey() {
+
+    // ==================== FETCH API KEY (now for Groq) ====================
+    async function getGroqApiKey() {
       if (cachedApiKey) return cachedApiKey;
       try {
         const snap = await getDoc(doc(db, "settings", "api_keys"));
@@ -271,7 +274,7 @@ Now go make everyone smile while you help them! 🎈
           cachedApiKey = snap.data().openrouter || null;
         }
       } catch (e) {
-        console.warn('Could not fetch API key', e);
+        console.warn('Could not fetch Groq API key', e);
       }
       return cachedApiKey;
     }
@@ -355,30 +358,28 @@ Now go make everyone smile while you help them! 🎈
       }
 
       // Check API key and warn if missing
-      getOpenRouterKey().then(key => {
+      getGroqApiKey().then(key => {
         if (!key) {
-          addMessage("The AI assistant is not configured yet. Please ask an admin to set the API key.", false);
+          addMessage("The AI assistant is not configured yet. Please ask an admin to set the Groq API key.", false);
         }
       });
 
-      // ==================== AI CALL (dynamic key) ====================
-      async function tryModel(model, userMessage) {
-        const apiKey = await getOpenRouterKey();
+      // ==================== AI CALL (using Groq) ====================
+      async function callGroq(userMessage) {
+        const apiKey = await getGroqApiKey();
         if (!apiKey) return null;
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 25000);
         try {
-          const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': window.location.origin,
-              'X-Title': 'Seden AI'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              model,
+              model: 'llama-3.1-8b-instant',
               messages: [
                 { role: 'system', content: SCHOOL_CONTEXT },
                 { role: 'user', content: userMessage }
@@ -389,38 +390,21 @@ Now go make everyone smile while you help them! 🎈
           });
           clearTimeout(timeout);
           if (resp.status === 429) {
-            console.warn('Rate limited – model overloaded:', model);
+            console.warn('Groq rate limited');
             return null;
           }
           if (!resp.ok) {
             const errData = await resp.json().catch(() => ({}));
-            console.warn(`Model ${model} failed:`, resp.status, errData);
+            console.warn('Groq error:', resp.status, errData);
             return null;
           }
           const data = await resp.json();
           return data.choices[0].message.content.trim();
         } catch (e) {
           clearTimeout(timeout);
-          console.error(`Error calling ${model}:`, e);
+          console.error('Groq call failed:', e);
           return null;
         }
-      }
-
-      // ========== NEW FREE MODELS (from your list) ==========
-      async function getAIResponse(msg) {
-        const models = [
-          'nex-agi/nex-n2-pro:free',
-          'openrouter/owl-alpha',
-          'google/gemma-4-31b-it:free',
-          'liquid/lfm-2.5-1.2b-instruct:free',
-          'meta-llama/llama-3.3-70b-instruct:free'
-        ];
-        for (const model of models) {
-          const reply = await tryModel(model, msg);
-          if (reply) return reply;
-          await new Promise(r => setTimeout(r, 1000)); // small delay between attempts
-        }
-        return "I'm having trouble connecting to my AI brain right now. Please try again later, or contact the school office for immediate help.";
       }
 
       async function sendMessage() {
@@ -432,11 +416,15 @@ Now go make everyone smile while you help them! 🎈
         messageInput.style.height = '44px';
 
         showTypingIndicator();
-        const reply = await getAIResponse(text);
+        const reply = await callGroq(text);
         removeTypingIndicator();
-        addMessage(reply, false);
 
-        saveChatToFirestore(text, reply);
+        if (!reply) {
+          addMessage("I'm having trouble connecting to my AI brain right now. Please try again later, or contact the school office for immediate help.", false);
+        } else {
+          addMessage(reply, false);
+          saveChatToFirestore(text, reply);
+        }
       }
 
       sendBtn.addEventListener('click', sendMessage);
